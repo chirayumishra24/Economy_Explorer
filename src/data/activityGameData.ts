@@ -310,31 +310,47 @@ function createBoard(): BoardTile[] {
   tiles[30 - 1] = { position: 30, type: 'snake', snakeTo: 20, label: '🐍 Market Crash!' };
   tiles[35 - 1] = { position: 35, type: 'snake', snakeTo: 27, label: '🐍 Supply Chain Break!' };
 
-  // Question tiles
-  const questions: BoardTile['question'][] = [
-    { text: 'Which sector does farming belong to?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 0, explanation: 'Farming directly uses natural resources — Primary Sector.' },
-    { text: 'Is a "haircut" a good or a service?', options: ['Good', 'Service'], correctIndex: 1, explanation: 'A haircut cannot be stored or touched — it is a service.' },
-    { text: 'Which sector does a textile factory belong to?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Manufacturing transforms raw materials — Secondary Sector.' },
-    { text: 'What does AMUL stand for?', options: ['Anand Milk Union Limited', 'All Milk Utility Ltd', 'Amul Milk Unlimited'], correctIndex: 0, explanation: 'AMUL = Anand Milk Union Limited, a dairy cooperative.' },
-    { text: 'Banking belongs to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Banking provides financial services — Tertiary Sector.' },
-    { text: 'Is "coal" a good or a service?', options: ['Good', 'Service'], correctIndex: 0, explanation: 'Coal is a physical material you can touch and store — it is a good.' },
-    { text: 'What makes an activity "economic"?', options: ['Done for fun', 'Done for income or livelihood', 'Done at home'], correctIndex: 1, explanation: 'Economic activities are performed in exchange for money or livelihood.' },
-    { text: 'Which is NOT a primary activity?', options: ['Fishing', 'Mining', 'Teaching'], correctIndex: 2, explanation: 'Teaching is a service — Tertiary Sector.' },
-    { text: 'A mother cooking at home is what type of activity?', options: ['Economic', 'Non-economic'], correctIndex: 1, explanation: 'Done out of love, not for payment — Non-economic.' },
-    { text: 'Cold storage belongs to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Storage provides preservation services — Tertiary Sector.' },
-    { text: 'Bread is made from wheat. Baking bread is which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Baking transforms grain into a finished product — Secondary Sector.' },
-    { text: 'Transporting goods by truck is which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Transportation provides mobility services — Tertiary Sector.' },
-  ];
-
+  // Question tile markers
   const questionPositions = [2, 5, 7, 10, 12, 16, 19, 22, 25, 28, 31, 34];
-  questionPositions.forEach((pos, i) => {
-    if (i < questions.length) {
-      tiles[pos - 1] = { position: pos, type: 'question', question: questions[i] };
-    }
+  questionPositions.forEach((pos) => {
+    tiles[pos - 1] = { position: pos, type: 'question' };
   });
 
   return tiles;
 }
+
+export const SNAKES_LADDERS_QUESTION_BANK = [
+  { text: 'Which sector does farming directly belong to?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 0, explanation: 'Farming directly draws on soil, sunlight, and rain — Primary Sector.' },
+  { text: 'Is a "haircut" by a barber a good or a service?', options: ['Good', 'Service'], correctIndex: 1, explanation: 'A haircut cannot be physically stored or held in inventory — it is a Service.' },
+  { text: 'Which sector does a cotton textile factory belong to?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Manufacturing transforms raw cotton into fabric — Secondary Sector.' },
+  { text: 'What does the abbreviation AMUL stand for?', options: ['Anand Milk Union Limited', 'All Milk Utility Ltd', 'Amul Milk Unlimited'], correctIndex: 0, explanation: 'AMUL = Anand Milk Union Limited, a model dairy cooperative.' },
+  { text: 'Commercial banking and loans belong to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Banking facilitates money flow and credit — Tertiary Sector.' },
+  { text: 'Is raw "iron ore" extracted from mines a good or a service?', options: ['Good', 'Service'], correctIndex: 0, explanation: 'Iron ore is a physical commodity you can store and transport — it is a Good.' },
+  { text: 'What primarily distinguishes an "economic" activity from a non-economic one?', options: ['Performed for income / livelihood', 'Performed for recreation / hobby', 'Performed at home with family'], correctIndex: 0, explanation: 'Economic activities are carried out in exchange for monetary returns or livelihood.' },
+  { text: 'Which of the following is NOT a primary sector activity?', options: ['Deep-sea fishing', 'Underground mining', 'High school teaching'], correctIndex: 2, explanation: 'Teaching provides educational services — Tertiary Sector.' },
+  { text: 'A mother preparing dinner at home for her children is what type of activity?', options: ['Economic Activity', 'Non-Economic Activity'], correctIndex: 1, explanation: 'Done out of love, care, and family responsibility without monetary pay — Non-Economic.' },
+  { text: 'Cold storage and warehousing belong to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Warehousing provides storage and preservation services — Tertiary Sector.' },
+  { text: 'Baking bread from wheat flour is classified under which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Baking transforms grain into processed food — Secondary Sector.' },
+  { text: 'Operating freight trucks on highways belongs to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 2, explanation: 'Transportation provides mobility services connecting producers and buyers — Tertiary Sector.' },
+  { text: 'Forestry and timber collection rely directly on what?', options: ['Natural forest ecosystems', 'Industrial chemical synthesis', 'Digital cloud servers'], correctIndex: 0, explanation: 'Forestry directly harvests wild forest resources — Primary Sector.' },
+  { text: 'Why is transportation called a "tertiary" activity?', options: ['It produces raw crops', 'It connects and supports makers and buyers', 'It mines mineral rocks'], correctIndex: 1, explanation: 'Tertiary activities provide support services connecting all sectors.' },
+  { text: 'If a chef cooks in a restaurant for paying guests, is it an economic activity?', options: ['Yes, it earns salary & profit', 'No, it is purely a hobby'], correctIndex: 0, explanation: 'Work done for remuneration or profit is an economic activity.' },
+  { text: 'Which sector acts as the bridge connecting primary producers with end consumers?', options: ['Primary Sector', 'Secondary Sector', 'Tertiary Sector'], correctIndex: 2, explanation: 'Trade, logistics, and retail in the tertiary sector link production with consumption.' },
+  { text: 'In the AMUL value chain, milk chilling centres perform what key function?', options: ['Prevent milk spoilage by cooling to 4°C', 'Grow natural pasture grass', 'Sell direct tea in roadside cups'], correctIndex: 0, explanation: 'Chilling preserves perishable milk before pasteurization.' },
+  { text: 'What is the main output of a hospital?', options: ['Physical manufactured devices', 'Healthcare and healing services', 'Raw medicinal plant herbs'], correctIndex: 1, explanation: 'Doctors and nurses provide human health services.' },
+  { text: 'Making earthen pots and matkas from clay on a wheel is which sector?', options: ['Primary Sector', 'Secondary Sector', 'Tertiary Sector'], correctIndex: 1, explanation: 'Transforming natural clay into durable baked pots is secondary manufacturing/craft.' },
+  { text: 'If all truck transport stops in a country, what happens to factories?', options: ['They continue normally forever', 'They run out of raw materials and stall', 'They instantly convert to farms'], correctIndex: 1, explanation: 'Interdependence: without transport, raw materials cannot reach factories.' },
+  { text: 'Is mobile telecommunication (making phone calls) a good or a service?', options: ['Good', 'Service'], correctIndex: 1, explanation: 'Digital communication is an intangible connectivity Service.' },
+  { text: 'Animal husbandry and dairy cattle rearing are part of which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 0, explanation: 'Rearing livestock relies on biological natural processes — Primary Sector.' },
+  { text: 'Converting sugarcane juice into crystallized sugar happens in which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Industrial sugar milling transforms sugarcane crop into processed sugar — Secondary.' },
+  { text: 'Which of the following is a tangible "Good"?', options: ['A textbook', 'A bus ride', 'An online consultation'], correctIndex: 0, explanation: 'A textbook is physical, tangible, and can be stored in a bag — a Good.' },
+  { text: 'A farmer taking a bank loan to purchase high-yield seeds is an example of what?', options: ['Interdependence between Primary & Tertiary', 'Isolated farming with zero services', 'Pure manufacturing only'], correctIndex: 0, explanation: 'Agriculture (Primary) depends on banking credit (Tertiary) to operate.' },
+  { text: 'What is a key benefit of a cooperative like AMUL for small dairy farmers?', options: ['Eliminates middlemen and ensures fair daily prices', 'Forces farmers to give milk for free', 'Stops all transportation'], correctIndex: 0, explanation: 'Cooperatives unite small producers for collective bargaining and fair market access.' },
+  { text: 'Constructing roads, bridges, and buildings belongs to which sector?', options: ['Primary', 'Secondary', 'Tertiary'], correctIndex: 1, explanation: 'Construction transforms cement, steel, and stone into physical structures — Secondary.' },
+  { text: 'Is an insurance policy that covers crop damage a good or a service?', options: ['Good', 'Service'], correctIndex: 1, explanation: 'Financial risk protection is an intangible financial Service.' },
+  { text: 'Which sector is also widely known as the "Service Sector"?', options: ['Primary Sector', 'Secondary Sector', 'Tertiary Sector'], correctIndex: 2, explanation: 'Tertiary sector is universally known as the service sector.' },
+  { text: 'Mining coal from underground geological deposits is classified under which sector?', options: ['Primary Sector', 'Secondary Sector', 'Tertiary Sector'], correctIndex: 0, explanation: 'Extracting natural earth minerals directly from nature is a Primary activity.' }
+];
 
 export const BOARD_TILES: BoardTile[] = createBoard();
 
