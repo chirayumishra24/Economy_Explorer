@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --bg-primary: #FDFBF7;
+  --text-main: #1F2937;
+  --border-subtle: #EAE6DF;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --bg-primary: #FFFFFF;
+  --text-main: #000000;
+  --border-subtle: #000000;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+.high-contrast .border-ncert-warm-border {
+  border-color: #000000 !important;
+}
+
+.high-contrast .bg-ncert-warm-bg {
+  background-color: #FFFFFF !important;
+}
+
+/* Font Size Scales */
+.font-size-normal {
+  font-size: 16px;
+}
+
+.font-size-large {
+  font-size: 18px;
+}
+
+.font-size-large h1 {
+  font-size: 2.25rem;
+}
+
+.font-size-large h2 {
+  font-size: 1.75rem;
+}
+
+.font-size-large p, 
+.font-size-large button, 
+.font-size-large span {
+  font-size: 1.125rem;
+}
+
+.font-size-extra-large {
+  font-size: 20px;
+}
+
+.font-size-extra-large h1 {
+  font-size: 2.5rem;
+}
+
+.font-size-extra-large h2 {
+  font-size: 2rem;
+}
+
+.font-size-extra-large p, 
+.font-size-extra-large button, 
+.font-size-extra-large span {
+  font-size: 1.25rem;
+}
+
+/* Reduced Motion Mode */
+.reduced-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Flow Arrow Animation */
+@keyframes flowPulse {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+}
+
+.animate-flow-arrow {
+  animation: flowPulse 1.8s ease-in-out infinite;
+}
+
+/* Pulse Glow for Active Elements */
+@keyframes softGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(46, 125, 50, 0);
+  }
+}
+
+.animate-soft-glow {
+  animation: softGlow 2.5s infinite;
+}
+
+/* Pleasant Floating Animation */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 3.5s ease-in-out infinite;
+}
+
+/* Soft Scale & Fade-in Entrance */
+@keyframes scaleSoftIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-soft-in {
+  animation: scaleSoftIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Shimmer Highlight */
+@keyframes shimmerGlow {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerGlow 2.8s infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1EFEA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Focus Ring for Accessibility */
+button:focus-visible, 
+input:focus-visible, 
+textarea:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 3px solid #2563EB;
+  outline-offset: 2px;
+}
