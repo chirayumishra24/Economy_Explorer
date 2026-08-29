@@ -7,6 +7,7 @@ import { TeamSetup } from '../components/shared/TeamSetup';
 import { PlayerSetup } from '../components/shared/PlayerSetup';
 import { ResultScreen } from '../components/shared/ResultScreen';
 import { WelcomeEntryAnimation } from '../components/ui/WelcomeEntryAnimation';
+import { EconomicBackgroundAnimation } from '../components/ui/EconomicBackgroundAnimation';
 
 // Activities
 import { SectorAuctionWar } from '../components/Activities/SectorAuctionWar';
@@ -35,7 +36,10 @@ export default function Home() {
   const currentActivityMeta = ACTIVITIES.find(a => a.id === state.currentActivity);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-ncert-warm-bg text-gray-900">
+    <div className="min-h-screen flex flex-col justify-between bg-ncert-warm-bg text-gray-900 relative overflow-x-hidden">
+      {/* Animated Economic Activities Background */}
+      <EconomicBackgroundAnimation />
+
       {/* Entry Welcome Animation */}
       <WelcomeEntryAnimation onStart={() => {}} />
 
