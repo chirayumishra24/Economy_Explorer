@@ -50,7 +50,7 @@ export default function Home() {
       />
 
       {/* Main Screen Canvas */}
-      <main className="flex-1 w-full mx-auto">
+      <main className="relative z-10 flex-1 w-full mx-auto">
         {/* SCREEN 1: ACTIVITY HUB */}
         {state.currentScreen === 'hub' && (
           <ActivityHub onSelectActivity={selectActivity} />

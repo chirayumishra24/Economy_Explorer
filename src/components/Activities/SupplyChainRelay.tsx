@@ -270,7 +270,7 @@ export function SupplyChainRelay({ teams, onUpdateScore, onEndGame, onBack }: Su
   const activeTurnTeamIdx = isStealMode ? ((1 - currentTurnTeam) as 0 | 1) : currentTurnTeam;
 
   return (
-    <div className="min-h-screen flex flex-col bg-ncert-warm-bg pb-12">
+    <div className="min-h-screen flex flex-col pb-12">
       <ScoreBoard
         teams={[
           { ...teams[0], score: scores[0] },

@@ -244,7 +244,7 @@ export function SectorAuctionWar({ teams, onUpdateScore, onEndGame, onBack }: Se
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-ncert-warm-bg pb-12">
+    <div className="min-h-screen flex flex-col pb-12">
       <ScoreBoard
         teams={[
           { ...teams[0], score: scores[0] },

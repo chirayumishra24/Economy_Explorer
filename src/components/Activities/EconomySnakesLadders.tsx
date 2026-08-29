@@ -419,7 +419,7 @@ export function EconomySnakesLadders({ players, onUpdateScore, onEndGame, onBack
   const DiceIcon = diceValue ? DICE_ICONS[diceValue - 1] : Dice1;
 
   return (
-    <div className="min-h-screen flex flex-col bg-ncert-warm-bg pb-12">
+    <div className="min-h-screen flex flex-col pb-12">
       <ScoreBoard
         players={[
           { name: players[0].name, score: correctCount[0] * 10 },

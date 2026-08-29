@@ -267,7 +267,7 @@ export function EconomyBuzzerRound({ players, onUpdateScore, onEndGame, onBack }
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-ncert-warm-bg pb-12">
+    <div className="min-h-screen flex flex-col pb-12">
       <ScoreBoard
         players={[
           { name: players[0].name, score: scores[0] },
