@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #FDFCF9;
+  --surface-main: #FFFFFF;
+  --border-main: #E7E3DA;
+  --text-main: #1F2430;
+  --text-muted: #5C6472;
+
+  --sector-primary: #2E8B57;
+  --sector-secondary: #E07A3F;
+  --sector-tertiary: #2F6FB0;
+  --accent-cta: #F2B233;
+
+  --status-success: #3D9970;
+  --status-warning: #E0A800;
+  --status-disrupted: #C0563A;
+
+  --ui-scale: 1;
+}
+
+/* Classroom Mode root scale */
+html.classroom-mode {
+  --ui-scale: 1.25;
+  font-size: 120%;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Page-level scroll is strictly prevented */
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Accessible focus styling */
+*:focus-visible {
+  outline: 3px solid #2F6FB0;
+  outline-offset: 2px;
+}
+
+/* Internal scroll container */
+.scrollable-panel {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #E7E3DA transparent;
+}
+
+.scrollable-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-panel::-webkit-scrollbar-thumb {
+  background-color: #E7E3DA;
+  border-radius: 9999px;
+}
+
+/* Pulsing packet animation */
+@keyframes packetFlow {
+  0% {
+    offset-distance: 0%;
+    opacity: 0.2;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0.2;
+  }
+}
+
+/* Ripple stage animations */
+@keyframes rippleWarningPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192, 86, 58, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(192, 86, 58, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192, 86, 58, 0);
+  }
+}
+
+.ripple-disrupted {
+  animation: rippleWarningPulse 1.8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prefers-reduced-motion path */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ripple-disrupted {
+    animation: none !important;
+    border: 3px dashed #C0563A !important;
+  }
+}
+
+/* Print styling for Teacher Summary */
+@media print {
+  body {
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
