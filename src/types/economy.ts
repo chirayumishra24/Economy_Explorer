@@ -95,6 +95,15 @@ export type CanonicalStop =
   | 'results'
   | 'review';
 
+export type Language = 'en' | 'hi';
+export type FlowMode = 'goods' | 'money';
+
+export interface SandboxState {
+  rainfall: number; // 0 (Drought) to 100 (Flood), 50 is normal
+  fuelCost: number; // 0 (Low) to 100 (High), 50 is standard
+  marketDemand: number; // 0 (Low) to 100 (Festive Rush), 50 is standard
+}
+
 export interface AppState {
   currentStop: CanonicalStop;
   screen: 'start' | 'how-to-play' | 'main' | 'teacher';
@@ -123,4 +132,9 @@ export interface AppState {
   soundEnabled: boolean;
   classroomMode: boolean;
   reducedMotion: boolean;
+  language: Language;
+  flowMode: FlowMode;
+  sandbox: SandboxState;
+  studentName: string;
 }
+

@@ -6,12 +6,16 @@ import { EconomicNode, Sector } from '../../../types/economy';
 import { NodeCard } from './NodeCard';
 import { NodeIconRenderer } from '../../icons/EconomicIcons';
 import { sound } from '../../../utils/audio';
+import { UI_TRANSLATIONS, NODE_TRANSLATIONS } from '../../../data/translations';
 
 export const ExploreMap: React.FC = () => {
   const { state, dispatch } = useEconomy();
   const [selectedNode, setSelectedNode] = useState<EconomicNode | null>(null);
   const [sectorFilter, setSectorFilter] = useState<Sector | 'all'>('all');
-  const [kindFilter, setKindFilter] = useState<'all' | 'good' | 'service'>('all');
+
+  const lang = state.language;
+  const ui = UI_TRANSLATIONS[lang];
+  const isMoneyFlow = state.flowMode === 'money';
 
   const visitedPrimary = state.visitedNodeIds.some(id => {
     const n = ECONOMIC_NODES.find(item => item.id === id);
@@ -49,19 +53,26 @@ export const ExploreMap: React.FC = () => {
     dispatch({ type: 'NAVIGATE_STOP', stop: 'follow-product' });
   };
 
+  const handleToggleFlowMode = (mode: 'goods' | 'money') => {
+    sound.playClick();
+    dispatch({ type: 'SET_FLOW_MODE', flowMode: mode });
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
-      {/* Top Bar: Sector Filter & Mission Goal */}
+      {/* Top Bar: Sector Filter & Flow Mode Selector */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface/90 border border-border rounded-card p-3 shadow-soft z-20">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-textMuted uppercase tracking-wider">Highlight:</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-bold text-textMuted uppercase tracking-wider">
+            {lang === 'hi' ? 'दिखाएं:' : 'Highlight:'}
+          </span>
           <button
             onClick={() => { sound.playClick(); setSectorFilter('all'); }}
             className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors min-h-[36px] ${
               sectorFilter === 'all' ? 'bg-textMain text-surface' : 'bg-background hover:bg-border/60 text-textMain border border-border'
             }`}
           >
-            All Sectors
+            {ui.sectors.all}
           </button>
           <button
             onClick={() => { sound.playClick(); setSectorFilter('primary'); }}
@@ -69,7 +80,7 @@ export const ExploreMap: React.FC = () => {
               sectorFilter === 'primary' ? 'bg-sectorPrimary text-surface' : 'bg-sectorPrimary/15 text-sectorPrimary border border-sectorPrimary/30 hover:bg-sectorPrimary/25'
             }`}
           >
-            Primary (Nature)
+            {ui.sectors.primary}
           </button>
           <button
             onClick={() => { sound.playClick(); setSectorFilter('secondary'); }}
@@ -77,7 +88,7 @@ export const ExploreMap: React.FC = () => {
               sectorFilter === 'secondary' ? 'bg-sectorSecondary text-surface' : 'bg-sectorSecondary/15 text-sectorSecondary border border-sectorSecondary/30 hover:bg-sectorSecondary/25'
             }`}
           >
-            Secondary (Making)
+            {ui.sectors.secondary}
           </button>
           <button
             onClick={() => { sound.playClick(); setSectorFilter('tertiary'); }}
@@ -85,53 +96,63 @@ export const ExploreMap: React.FC = () => {
               sectorFilter === 'tertiary' ? 'bg-sectorTertiary text-surface' : 'bg-sectorTertiary/15 text-sectorTertiary border border-sectorTertiary/30 hover:bg-sectorTertiary/25'
             }`}
           >
-            Tertiary (Services)
+            {ui.sectors.tertiary}
           </button>
         </div>
 
-        {/* Goods vs Services Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-textMuted uppercase tracking-wider hidden sm:inline">Output:</span>
+        {/* Dual Flow Mode Selector */}
+        <div className="flex items-center gap-1.5 bg-background p-1 rounded-btn border border-border">
           <button
-            onClick={() => { sound.playClick(); setKindFilter(kindFilter === 'good' ? 'all' : 'good'); }}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors min-h-[36px] ${
-              kindFilter === 'good' ? 'bg-accentYellow text-textMain font-bold' : 'bg-background hover:bg-border/60 text-textMuted border border-border'
+            onClick={() => handleToggleFlowMode('goods')}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all min-h-[32px] ${
+              !isMoneyFlow
+                ? 'bg-textMain text-surface shadow-sm'
+                : 'text-textMuted hover:text-textMain'
             }`}
           >
-            📦 Goods Only
+            {ui.flowMode.goods}
           </button>
           <button
-            onClick={() => { sound.playClick(); setKindFilter(kindFilter === 'service' ? 'all' : 'service'); }}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors min-h-[36px] ${
-              kindFilter === 'service' ? 'bg-accentYellow text-textMain font-bold' : 'bg-background hover:bg-border/60 text-textMuted border border-border'
+            onClick={() => handleToggleFlowMode('money')}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all min-h-[32px] ${
+              isMoneyFlow
+                ? 'bg-accentOrange text-surface shadow-sm'
+                : 'text-textMuted hover:text-textMain'
             }`}
           >
-            🤝 Services Only
+            {ui.flowMode.money}
           </button>
         </div>
 
         {/* Exploration Goal Checklist */}
         <div className="flex items-center gap-2 text-xs font-bold bg-background px-3 py-1.5 rounded-btn border border-border">
-          <span className="text-textMuted font-normal">Mission:</span>
+          <span className="text-textMuted font-normal">{lang === 'hi' ? 'मिशन:' : 'Mission:'}</span>
           <span className={visitedPrimary ? 'text-sectorPrimary' : 'text-textMuted'}>
-            {visitedPrimary ? '✓' : '○'} Primary
+            {visitedPrimary ? '✓' : '○'} {lang === 'hi' ? 'प्राथमिक' : 'Primary'}
           </span>
           <span className={visitedSecondary ? 'text-sectorSecondary' : 'text-textMuted'}>
-            {visitedSecondary ? '✓' : '○'} Secondary
+            {visitedSecondary ? '✓' : '○'} {lang === 'hi' ? 'द्वितीयक' : 'Secondary'}
           </span>
           <span className={visitedTertiary ? 'text-sectorTertiary' : 'text-textMuted'}>
-            {visitedTertiary ? '✓' : '○'} Tertiary
+            {visitedTertiary ? '✓' : '○'} {lang === 'hi' ? 'तृतीयक' : 'Tertiary'}
           </span>
         </div>
       </div>
 
-      {/* Quick Instruction Banner */}
-      <div className="bg-background/80 border border-border/80 rounded-btn px-3 py-1.5 mt-2 flex items-center justify-between text-xs text-textMuted z-10">
+      {/* Dynamic Flow & Educational Info Banner */}
+      <div className={`border rounded-btn px-3 py-2 mt-2 flex items-center justify-between text-xs z-10 transition-colors duration-300 ${
+        isMoneyFlow
+          ? 'bg-amber-500/15 border-amber-500/40 text-amber-900'
+          : 'bg-background/80 border-border/80 text-textMuted'
+      }`}>
         <div className="flex items-center gap-2">
-          <span className="text-accentYellow font-bold">💡 How to Play:</span>
-          <span>Tap any node on the map to inspect who works there, what they do, and their sector. Explore at least one of each sector to unlock Stop 2.</span>
+          <span className="font-bold text-base">{isMoneyFlow ? '💸' : '💡'}</span>
+          <span className="font-medium leading-relaxed">
+            {isMoneyFlow ? ui.flowMode.bannerMoney : ui.flowMode.bannerGoods}
+          </span>
         </div>
       </div>
+
 
       {/* Main Graph Interactive Canvas */}
       <div className="relative flex-1 w-full h-full my-2 bg-surface border border-border rounded-card shadow-soft overflow-hidden">
@@ -149,8 +170,7 @@ export const ExploreMap: React.FC = () => {
             if (!fromNode || !toNode) return null;
 
             const isHighlighted =
-              (sectorFilter === 'all' || fromNode.sector === sectorFilter || toNode.sector === sectorFilter) &&
-              (kindFilter === 'all' || fromNode.output.kind === kindFilter || toNode.output.kind === kindFilter);
+              sectorFilter === 'all' || fromNode.sector === sectorFilter || toNode.sector === sectorFilter;
 
             return (
               <g key={conn.id} opacity={isHighlighted ? 0.9 : 0.2} className="transition-opacity duration-300">
@@ -160,28 +180,68 @@ export const ExploreMap: React.FC = () => {
                   y1={`${fromNode.position.y}%`}
                   x2={`${toNode.position.x}%`}
                   y2={`${toNode.position.y}%`}
-                  stroke="#CDC6BA"
-                  strokeWidth="2.5"
-                  strokeDasharray="4,4"
+                  stroke={isMoneyFlow ? '#E5A93C' : '#CDC6BA'}
+                  strokeWidth={isMoneyFlow ? '3' : '2.5'}
+                  strokeDasharray={isMoneyFlow ? '6,3' : '4,4'}
                   markerEnd="url(#arrow)"
                 />
 
-                {/* Animated Packet Pulse along connection */}
+                {/* Animated Packet / Currency Pulse along connection */}
                 {!state.reducedMotion && (
-                  <circle r="4" fill={fromNode.sector === 'primary' ? '#2E8B57' : fromNode.sector === 'secondary' ? '#E07A3F' : '#2F6FB0'}>
-                    <animate
-                      attributeName="cx"
-                      values={`${fromNode.position.x}%;${toNode.position.x}%`}
-                      dur="3.5s"
-                      repeatCount="indefinite"
-                    />
-                    <animate
-                      attributeName="cy"
-                      values={`${fromNode.position.y}%;${toNode.position.y}%`}
-                      dur="3.5s"
-                      repeatCount="indefinite"
-                    />
-                  </circle>
+                  isMoneyFlow ? (
+                    <g>
+                      <circle r="7" fill="#F59E0B" stroke="#D97706" strokeWidth="1.5">
+                        <animate
+                          attributeName="cx"
+                          values={`${toNode.position.x}%;${fromNode.position.x}%`}
+                          dur="3s"
+                          repeatCount="indefinite"
+                        />
+                        <animate
+                          attributeName="cy"
+                          values={`${toNode.position.y}%;${fromNode.position.y}%`}
+                          dur="3s"
+                          repeatCount="indefinite"
+                        />
+                      </circle>
+                      <text
+                        fontSize="9"
+                        fontWeight="900"
+                        fill="#FFFFFF"
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                      >
+                        ₹
+                        <animate
+                          attributeName="x"
+                          values={`${toNode.position.x}%;${fromNode.position.x}%`}
+                          dur="3s"
+                          repeatCount="indefinite"
+                        />
+                        <animate
+                          attributeName="y"
+                          values={`${toNode.position.y}%;${fromNode.position.y}%`}
+                          dur="3s"
+                          repeatCount="indefinite"
+                        />
+                      </text>
+                    </g>
+                  ) : (
+                    <circle r="4.5" fill={fromNode.sector === 'primary' ? '#2E8B57' : fromNode.sector === 'secondary' ? '#E07A3F' : '#2F6FB0'}>
+                      <animate
+                        attributeName="cx"
+                        values={`${fromNode.position.x}%;${toNode.position.x}%`}
+                        dur="3.5s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="cy"
+                        values={`${fromNode.position.y}%;${toNode.position.y}%`}
+                        dur="3.5s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )
                 )}
               </g>
             );
@@ -190,10 +250,13 @@ export const ExploreMap: React.FC = () => {
 
         {/* 10 Economic Nodes Rendered on Canvas */}
         {ECONOMIC_NODES.map((node) => {
+          const trans = NODE_TRANSLATIONS[node.id]?.[lang];
+          const displayLabel = trans?.label || node.label;
+          const displayWho = trans?.who || node.who;
+
           const isVisited = state.visitedNodeIds.includes(node.id);
           const isMatchingSector = sectorFilter === 'all' || node.sector === sectorFilter;
-          const isMatchingKind = kindFilter === 'all' || node.output.kind === kindFilter;
-          const isDimmed = !isMatchingSector || !isMatchingKind;
+          const isDimmed = !isMatchingSector;
 
           const sectorBorderColor =
             node.sector === 'primary'
@@ -217,8 +280,8 @@ export const ExploreMap: React.FC = () => {
               <button
                 onClick={() => handleNodeClick(node)}
                 className={`flex flex-col items-center p-2.5 rounded-card bg-surface border-2 shadow-soft hover:shadow-lift hover:scale-105 active:scale-95 transition-all min-h-[44px] min-w-[110px] ${sectorBorderColor}`}
-                title={`Click to inspect ${node.label} (${node.who})`}
-                aria-label={`Inspect ${node.label}, ${node.sector} sector`}
+                title={`Click to inspect ${displayLabel} (${displayWho})`}
+                aria-label={`Inspect ${displayLabel}, ${node.sector} sector`}
               >
                 <div className="flex items-center gap-1.5 mb-1">
                   <div className={`p-1.5 rounded-full ${
@@ -233,10 +296,10 @@ export const ExploreMap: React.FC = () => {
                   )}
                 </div>
                 <span className="text-xs font-bold text-textMain text-center leading-tight">
-                  {node.label}
+                  {displayLabel}
                 </span>
                 <span className="text-[10px] text-textMuted mt-0.5 truncate max-w-[100px]">
-                  {node.who.split(',')[0]}
+                  {displayWho.split(',')[0]}
                 </span>
               </button>
             </div>
@@ -252,15 +315,23 @@ export const ExploreMap: React.FC = () => {
               ✓
             </span>
             <div>
-              <h4 className="text-sm font-bold text-textMain">Exploration Complete!</h4>
-              <p className="text-xs text-textMuted">You discovered people and activities in all three sectors of the economy.</p>
+              <h4 className="text-sm font-bold text-textMain">
+                {lang === 'hi' ? 'अन्वेषण पूरा हुआ!' : 'Exploration Complete!'}
+              </h4>
+              <p className="text-xs text-textMuted">
+                {lang === 'hi'
+                  ? 'आपने अर्थव्यवस्था के तीनों क्षेत्रों के लोगों और गतिविधियों को खोज लिया है।'
+                  : 'You discovered people and activities in all three sectors of the economy.'}
+              </p>
             </div>
           </div>
           <button
             onClick={handleNextStop}
             className="px-5 py-2.5 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-bold text-xs shadow-soft min-h-[44px] flex items-center gap-1.5"
           >
-            <span>CONTINUE TO FOLLOW THE PRODUCT</span>
+            <span>
+              {lang === 'hi' ? 'उत्पाद की यात्रा देखें' : 'CONTINUE TO FOLLOW THE PRODUCT'}
+            </span>
             <span>→</span>
           </button>
         </div>

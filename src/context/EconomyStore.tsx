@@ -25,6 +25,10 @@ type Action =
   | { type: 'TOGGLE_SOUND' }
   | { type: 'TOGGLE_CLASSROOM_MODE' }
   | { type: 'TOGGLE_REDUCED_MOTION' }
+  | { type: 'SET_LANGUAGE'; language: AppState['language'] }
+  | { type: 'SET_FLOW_MODE'; flowMode: AppState['flowMode'] }
+  | { type: 'SET_STUDENT_NAME'; name: string }
+  | { type: 'UPDATE_SANDBOX'; key: keyof AppState['sandbox']; value: number }
   | { type: 'PLAY_AGAIN' }
   | { type: 'RESET_ENTIRE_APP' };
 
@@ -61,7 +65,15 @@ const INITIAL_STATE: AppState = {
   wrongFixAttempts: 0,
   soundEnabled: false,
   classroomMode: false,
-  reducedMotion: false
+  reducedMotion: false,
+  language: 'en',
+  flowMode: 'goods',
+  sandbox: {
+    rainfall: 50,
+    fuelCost: 50,
+    marketDemand: 50
+  },
+  studentName: ''
 };
 
 function economyReducer(state: AppState, action: Action): AppState {
@@ -281,6 +293,24 @@ function economyReducer(state: AppState, action: Action): AppState {
     case 'TOGGLE_REDUCED_MOTION':
       return { ...state, reducedMotion: !state.reducedMotion };
 
+    case 'SET_LANGUAGE':
+      return { ...state, language: action.language };
+
+    case 'SET_FLOW_MODE':
+      return { ...state, flowMode: action.flowMode };
+
+    case 'SET_STUDENT_NAME':
+      return { ...state, studentName: action.name };
+
+    case 'UPDATE_SANDBOX':
+      return {
+        ...state,
+        sandbox: {
+          ...state.sandbox,
+          [action.key]: action.value
+        }
+      };
+
     case 'PLAY_AGAIN': {
       // Re-sample unseen questions from question pool, preserving answered list for exclusion
       const answeredIds = Object.keys(state.userAnswers);
@@ -292,7 +322,8 @@ function economyReducer(state: AppState, action: Action): AppState {
         assessmentQuestions: questions,
         soundEnabled: state.soundEnabled,
         classroomMode: state.classroomMode,
-        reducedMotion: state.reducedMotion
+        reducedMotion: state.reducedMotion,
+        language: state.language
       };
     }
 
@@ -301,7 +332,8 @@ function economyReducer(state: AppState, action: Action): AppState {
         ...INITIAL_STATE,
         soundEnabled: state.soundEnabled,
         classroomMode: state.classroomMode,
-        reducedMotion: state.reducedMotion
+        reducedMotion: state.reducedMotion,
+        language: state.language
       };
 
     default:

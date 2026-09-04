@@ -3,6 +3,7 @@ import { useEconomy } from '../../context/EconomyStore';
 import { CanonicalStop } from '../../types/economy';
 import { sound } from '../../utils/audio';
 import { HowToPlayModal } from '../start/HowToPlayModal';
+import { UI_TRANSLATIONS } from '../../data/translations';
 
 interface StopMeta {
   id: CanonicalStop;
@@ -10,6 +11,7 @@ interface StopMeta {
   label: string;
   shortLabel: string;
 }
+
 
 const CANONICAL_STOPS: StopMeta[] = [
   { id: 'explore', number: 1, label: '1. Explore', shortLabel: 'Explore' },
@@ -89,8 +91,12 @@ export const Header: React.FC = () => {
             E
           </div>
           <div className="text-left hidden sm:block">
-            <div className="text-sm font-bold text-textMain leading-tight">The Economy Machine</div>
-            <div className="text-[11px] text-textMuted leading-none">Class 6 Social Science</div>
+            <div className="text-sm font-bold text-textMain leading-tight">
+              {state.language === 'hi' ? 'द इकोनॉमी मशीन' : 'The Economy Machine'}
+            </div>
+            <div className="text-[11px] text-textMuted leading-none">
+              {state.language === 'hi' ? 'कक्षा 6 सामाजिक विज्ञान' : 'Class 6 Social Science'}
+            </div>
           </div>
         </button>
 
@@ -102,7 +108,7 @@ export const Header: React.FC = () => {
             title="Classroom Demo: Jump to any stop"
             aria-expanded={jumpOpen}
           >
-            <span>Jump to...</span>
+            <span>{state.language === 'hi' ? 'सीधे जाएं...' : 'Jump to...'}</span>
             <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
@@ -111,21 +117,24 @@ export const Header: React.FC = () => {
           {jumpOpen && (
             <div className="absolute top-full left-0 mt-1.5 w-52 bg-surface border border-border rounded-card shadow-lift p-1.5 z-50">
               <div className="px-2 py-1 text-[11px] font-semibold text-textMuted uppercase tracking-wider">Teacher Controls</div>
-              {CANONICAL_STOPS.map((stop) => (
-                <button
-                  key={stop.id}
-                  onClick={() => {
-                    handleStopClick(stop.id);
-                    setJumpOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-btn text-sm font-medium hover:bg-background text-textMain transition-colors flex items-center justify-between"
-                >
-                  <span>{stop.label}</span>
-                  {state.completedStops.includes(stop.id) && (
-                    <span className="text-statusSuccess text-xs font-bold">✓</span>
-                  )}
-                </button>
-              ))}
+              {CANONICAL_STOPS.map((stop) => {
+                const localizedStop = UI_TRANSLATIONS[state.language].stops[stop.id as keyof typeof UI_TRANSLATIONS['en']['stops']] || stop.label;
+                return (
+                  <button
+                    key={stop.id}
+                    onClick={() => {
+                      handleStopClick(stop.id);
+                      setJumpOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-btn text-sm font-medium hover:bg-background text-textMain transition-colors flex items-center justify-between"
+                  >
+                    <span>{localizedStop}</span>
+                    {state.completedStops.includes(stop.id) && (
+                      <span className="text-statusSuccess text-xs font-bold">✓</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -139,6 +148,7 @@ export const Header: React.FC = () => {
             state.currentStop === stop.id ||
             (stop.id === 'assessment' && (state.currentStop === 'results' || state.currentStop === 'review'));
           const isCompleted = state.completedStops.includes(stop.id);
+          const localizedShort = UI_TRANSLATIONS[state.language].stops[stop.id as keyof typeof UI_TRANSLATIONS['en']['stops']] || stop.shortLabel;
 
           return (
             <button
@@ -162,7 +172,7 @@ export const Header: React.FC = () => {
               }`}>
                 {isCompleted ? '✓' : stop.number}
               </span>
-              <span className="hidden md:inline">{stop.shortLabel}</span>
+              <span className="hidden md:inline">{localizedShort}</span>
             </button>
           );
         })}
@@ -196,7 +206,29 @@ export const Header: React.FC = () => {
           <span className="hidden sm:inline">Guide</span>
         </button>
 
+        {/* Bilingual Language Switcher */}
+        <button
+          onClick={() => {
+            sound.playClick();
+            dispatch({
+              type: 'SET_LANGUAGE',
+              language: state.language === 'en' ? 'hi' : 'en'
+            });
+          }}
+          className={`px-2.5 py-1.5 rounded-btn border transition-colors min-h-[44px] flex items-center gap-1 text-xs font-bold ${
+            state.language === 'hi'
+              ? 'bg-accentOrange text-surface border-accentOrange shadow-soft'
+              : 'bg-background text-textMain border-border hover:bg-border/50'
+          }`}
+          title={state.language === 'en' ? 'Switch to Hindi (हिन्दी में पढ़ें)' : 'Switch to English'}
+          aria-label="Toggle language"
+        >
+          <span className="text-sm">🌐</span>
+          <span>{state.language === 'en' ? 'हिन्दी' : 'English'}</span>
+        </button>
+
         {/* Classroom Mode Toggle */}
+
         <button
           onClick={handleClassroomToggle}
           className={`p-2 rounded-btn border transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center text-xs font-bold ${

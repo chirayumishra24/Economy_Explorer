@@ -110,17 +110,25 @@ html, body, #root {
   }
 }
 
-/* Print styling for Teacher Summary */
+/* Print styling for Teacher Summary & Junior Economist Certificate */
 @media print {
   body {
     overflow: visible !important;
     background: white !important;
     color: black !important;
   }
-  .no-print {
+  header, footer, .no-print, nav, .print\:hidden {
     display: none !important;
   }
   .print-only {
     display: block !important;
+  }
+  #printable-certificate {
+    border: 3px double #d97706 !important;
+    background: white !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
   }
 }

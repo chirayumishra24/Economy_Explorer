@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { useEconomy } from '../../../context/EconomyStore';
 import { sound } from '../../../utils/audio';
 import { ReviewModal } from './ReviewModal';
+import { CertificateModal } from './CertificateModal';
+import { UI_TRANSLATIONS } from '../../../data/translations';
 
 export const ResultsScreen: React.FC = () => {
   const { state, playAgain, dispatch } = useEconomy();
   const [showReview, setShowReview] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+
+  const lang = state.language;
+  const ui = UI_TRANSLATIONS[lang].certificate;
 
   const totalScore =
     state.scores.exploration +
@@ -53,10 +59,10 @@ export const ResultsScreen: React.FC = () => {
       {/* Header */}
       <div className="text-center mb-2">
         <h2 className="text-2xl sm:text-3xl font-black text-textMain tracking-tight">
-          Your Economy Machine Results
+          {lang === 'hi' ? 'द इकोनॉमी मशीन के अंतिम परिणाम' : 'Your Economy Machine Results'}
         </h2>
         <p className="text-xs sm:text-sm text-textMuted font-medium">
-          Class 6 Social Science · Chapter 14 Evaluation
+          {lang === 'hi' ? 'कक्षा 6 सामाजिक विज्ञान · अध्याय 14 मूल्यांकन' : 'Class 6 Social Science · Chapter 14 Evaluation'}
         </p>
       </div>
 
@@ -70,11 +76,13 @@ export const ResultsScreen: React.FC = () => {
               <span className="text-[10px] text-textMuted font-bold leading-none">/ 100</span>
             </div>
             <div>
-              <div className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black border ${bandBadgeColor} mb-1`}>
-                <span>★</span>
-                <span>{bandTitle}</span>
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${bandBadgeColor}`}>
+                  {bandTitle}
+                </span>
+                <span className="text-xs text-textMuted font-semibold">Overall Mastery</span>
               </div>
-              <p className="text-xs text-textMuted max-w-md leading-tight">{bandDesc}</p>
+              <p className="text-xs text-textMain mt-1 max-w-md">{bandDesc}</p>
             </div>
           </div>
 
@@ -152,13 +160,24 @@ export const ResultsScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-end pt-3 border-t border-border mt-3">
+        {/* Action Buttons: Claim Certificate & Play Again */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border mt-3">
+          <button
+            onClick={() => {
+              sound.playChallengeComplete();
+              setShowCertificate(true);
+            }}
+            className="px-6 py-3 rounded-btn bg-accentOrange hover:brightness-105 text-surface font-black text-xs sm:text-sm shadow-soft min-h-[44px] flex items-center gap-2 active:scale-95"
+          >
+            <span>🎓</span>
+            <span>{ui.button}</span>
+          </button>
+
           <button
             onClick={handlePlayAgain}
-            className="px-8 py-3 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-black text-sm shadow-soft min-h-[44px] flex items-center gap-2 active:scale-95"
+            className="px-8 py-3 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-black text-xs sm:text-sm shadow-soft min-h-[44px] flex items-center gap-2 active:scale-95"
           >
-            <span>PLAY AGAIN (NEW QUESTIONS)</span>
+            <span>{lang === 'hi' ? 'पुनः खेलें (नए प्रश्न)' : 'PLAY AGAIN (NEW QUESTIONS)'}</span>
             <span>↻</span>
           </button>
         </div>
@@ -170,6 +189,14 @@ export const ResultsScreen: React.FC = () => {
           questions={state.assessmentQuestions}
           userAnswers={state.userAnswers}
           onClose={() => setShowReview(false)}
+        />
+      )}
+
+      {/* Printable Certificate Modal */}
+      {showCertificate && (
+        <CertificateModal
+          totalScore={totalScore}
+          onClose={() => setShowCertificate(false)}
         />
       )}
     </div>

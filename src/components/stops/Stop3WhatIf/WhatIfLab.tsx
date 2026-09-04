@@ -4,9 +4,11 @@ import { SCENARIOS } from '../../../data/scenarios';
 import { ECONOMIC_NODES } from '../../../data/nodes';
 import { NodeIconRenderer } from '../../icons/EconomicIcons';
 import { sound } from '../../../utils/audio';
+import { EconomySandbox } from './EconomySandbox';
 
 export const WhatIfLab: React.FC = () => {
   const { state, dispatch } = useEconomy();
+  const [activeTab, setActiveTab] = useState<'scenarios' | 'sandbox'>('scenarios');
   const [selectedScenarioId, setSelectedScenarioId] = useState('scenario-transport-blocked');
   const [reasoningChoice, setReasoningChoice] = useState<string | null>(null);
   const [activeRippleOrder, setActiveRippleOrder] = useState<number>(0);
@@ -14,9 +16,11 @@ export const WhatIfLab: React.FC = () => {
   const rippleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scenario = SCENARIOS.find(s => s.id === selectedScenarioId) || SCENARIOS[0];
+  const lang = state.language;
 
   // Freeze state occurs whenever a scenario is selected but not yet run
   const isFrozen = !state.simulationRunning && !state.simulationFinished;
+
 
   const handleSelectScenario = (id: string) => {
     sound.playClick();
@@ -94,12 +98,47 @@ export const WhatIfLab: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
-      {/* Top Bar: Scenario Selector */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-border rounded-card p-3 shadow-soft z-20">
-        <div>
-          <span className="text-xs font-bold text-textMuted uppercase tracking-wider block">
-            Step 1: Choose a Disruption Scenario
-          </span>
+      {/* Top Mode Navigation Tab (Scenarios vs Sandbox) */}
+      <div className="flex items-center justify-between gap-3 mb-2 shrink-0">
+        <div className="flex items-center gap-1.5 bg-surface p-1 rounded-btn border border-border shadow-soft">
+          <button
+            onClick={() => { sound.playClick(); setActiveTab('scenarios'); }}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 min-h-[36px] ${
+              activeTab === 'scenarios'
+                ? 'bg-textMain text-surface shadow-sm'
+                : 'text-textMuted hover:text-textMain'
+            }`}
+          >
+            <span>⚡</span>
+            <span>{lang === 'hi' ? 'संकट परिदृश्य (Scenarios)' : 'Disruption Scenarios'}</span>
+          </button>
+          <button
+            onClick={() => { sound.playClick(); setActiveTab('sandbox'); }}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 min-h-[36px] ${
+              activeTab === 'sandbox'
+                ? 'bg-accentOrange text-surface shadow-sm'
+                : 'text-textMuted hover:text-textMain'
+            }`}
+          >
+            <span>🎛️</span>
+            <span>{lang === 'hi' ? 'लाइव सैंडबॉक्स (Sandbox)' : 'Live Economy Sandbox'}</span>
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'sandbox' ? (
+        <div className="flex-1 w-full overflow-hidden">
+          <EconomySandbox />
+        </div>
+      ) : (
+        <>
+          {/* Top Bar: Scenario Selector */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-border rounded-card p-3 shadow-soft z-20 shrink-0">
+            <div>
+              <span className="text-xs font-bold text-textMuted uppercase tracking-wider block">
+                {lang === 'hi' ? 'चरण 1: संकट परिदृश्य चुनें' : 'Step 1: Choose a Disruption Scenario'}
+              </span>
+
           <div className="flex items-center gap-2 mt-1">
             {SCENARIOS.map(sc => (
               <button
@@ -353,6 +392,8 @@ export const WhatIfLab: React.FC = () => {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };
