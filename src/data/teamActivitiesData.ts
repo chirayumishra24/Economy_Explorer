@@ -1,23 +1,23 @@
-import { SectorCard, AmulStageCard, TeamProfile } from '../types/economy';
+import { SectorCard, AmulStageCard, TeamProfile, StoryRound } from '../types/economy';
 
 export const INITIAL_TEAMS: TeamProfile[] = [
   {
     id: 'teamA',
-    name: 'Team Milk Tigers',
-    color: '#2563EB',
-    bgColor: '#EFF6FF',
+    name: 'Team Knowledge',
+    color: '#1E6FD9',
+    bgColor: '#EAF3FF',
     borderColor: '#93C5FD',
-    avatar: '🐯',
-    mascot: 'Royal Bengal Tiger',
+    avatar: '👦',
+    mascot: 'Boy explorer in a blue hoodie',
   },
   {
     id: 'teamB',
-    name: 'Team Grain Champions',
-    color: '#D97706',
-    bgColor: '#FFFBEB',
-    borderColor: '#FCD34D',
-    avatar: '🦁',
-    mascot: 'Golden Lion',
+    name: 'Team Heritage',
+    color: '#F2711C',
+    bgColor: '#FFF4EA',
+    borderColor: '#FDBA74',
+    avatar: '👧',
+    mascot: 'Girl explorer in an orange hoodie',
   },
 ];
 
@@ -33,6 +33,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'This activity produces raw food directly from nature, soil, and rain without factory machines.',
     funFact: 'India is the world\'s second-largest producer of wheat after China!',
     illustrationKey: 'wheat-harvest',
+    imageUrl: './images/primary_farmer_wheat.jpg',
     hindiTitle: 'गेहूं की फसल काटना',
     hindiDescription: 'किसान रमेश सुबह की धूप में पकी हुई गेहूं की सुनहरी फसल को दरांती से काट रहे हैं।'
   },
@@ -46,6 +47,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Caring for cows and drawing fresh raw milk is biological work connected directly with living animals.',
     funFact: 'India is the largest producer of milk in the world, producing over 230 million tonnes annually!',
     illustrationKey: 'dairy-milking',
+    imageUrl: './images/primary_dairy_cow.jpg',
     hindiTitle: 'गायों का दूध निकालना',
     hindiDescription: 'कमला और उनका परिवार गायों को चारा खिलाते हैं और स्टील की बाल्टियों में ताजा दूध निकालते हैं।'
   },
@@ -59,6 +61,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Catching living fish directly from natural rivers, lakes, or seas belongs to extracting natural resources.',
     funFact: 'Rivers like the Ganga and Brahmaputra support millions of traditional fishing families in India.',
     illustrationKey: 'river-fishing',
+    imageUrl: './images/primary_river_fishing.jpg',
     hindiTitle: 'नदी में मछली पकड़ना',
     hindiDescription: 'मछुआरा मोहन लकड़ी की नाव से बहती नदी में जाल फेंककर ताजी मछलियां पकड़ रहा है।'
   },
@@ -87,6 +90,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Taking raw clay from nature and transforming it with tools and heat into pots is manufacturing.',
     funFact: 'Indian clay matkas naturally cool drinking water through evaporative micro-pores without electricity!',
     illustrationKey: 'pottery-wheel',
+    imageUrl: './images/secondary_potter_clay.jpg',
     hindiTitle: 'कुम्हार के चाक पर मटका बनाना',
     hindiDescription: 'कुम्हारी सुनीता चाक घुमाकर गीली मिट्टी को पीने के पानी के सुंदर मटकों में बदल रही हैं।'
   },
@@ -113,6 +117,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Raw agricultural cotton fibers are spun and woven into cloth using machinery or handlooms.',
     funFact: 'India\'s handloom sector employs more than 3.5 million craftspersons across rural villages.',
     illustrationKey: 'textile-loom',
+    imageUrl: './images/secondary_textile_mill.jpg',
     hindiTitle: 'करघे पर कपड़ा बुनना',
     hindiDescription: 'बुनकर लक्ष्मी करघे पर सूती धागों को जोड़कर सुंदर रंगीन कपड़े तैयार कर रही हैं।'
   },
@@ -126,6 +131,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Liquid milk is transformed into butter, cheese, and milk powder using industrial machinery.',
     funFact: 'Pasteurization heats milk to 72°C for 15 seconds to kill harmful germs while preserving taste!',
     illustrationKey: 'butter-processing',
+    imageUrl: './images/secondary_dairy_factory.jpg',
     hindiTitle: 'मक्खन और पनीर बनाना',
     hindiDescription: 'डेयरी प्लांट में बड़ी मशीनों द्वारा दूध की मलाई को मथकर मक्खन और पनीर बनाया जा रहा है।'
   },
@@ -141,6 +147,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'This does not make a new physical object; it provides the crucial service of moving goods where needed.',
     funFact: 'Insulated milk tankers keep milk at a freezing 4°C so it does not spoil even during 500 km journeys!',
     illustrationKey: 'milk-tanker',
+    imageUrl: './images/tertiary_milk_tanker.jpg',
     hindiTitle: 'टैंकर द्वारा दूध पहुंचाना',
     hindiDescription: 'ड्राइवर जसप्रीत इंसुलेटेड मिल्क टैंकर चलाकर हाईवे से शहरों तक दूध सुरक्षित पहुंचा रहे हैं।'
   },
@@ -167,6 +174,7 @@ export const SECTOR_CARDS: SectorCard[] = [
     hint: 'Retailing brings finished products from factories and farms into the hands of local families.',
     funFact: 'Over 12 million small kirana shops form the retail lifeline of communities across India!',
     illustrationKey: 'bazaar-shop',
+    imageUrl: './images/tertiary_kirana_store.jpg',
     hindiTitle: 'किराना दुकान पर सामान बेचना',
     hindiDescription: 'दुकानदार सलीम अपनी दुकान में ग्राहकों को रोजमर्रा का सामान, दाल, मसाले और दूध बेच रहे हैं।'
   },
@@ -269,5 +277,171 @@ export const AMUL_FLOWCHART_STAGES: AmulStageCard[] = [
     illustrationKey: 'amul-consumer',
     hindiTitle: '6. बच्चे और परिवार सेहतमंद दूध का आनंद लेते हुए',
     hindiDescription: 'बच्चे और परिवार नाश्ते में पौष्टिक दूध पीते हैं, जिससे पूरी आर्थिक चक्र पूरा होता है!'
+  },
+];
+
+// Activity 2 rounds: each round is one 6-event story that both teams sequence side by side.
+export const AMUL_STORY_ROUNDS: StoryRound[] = [
+  {
+    id: 'amul-success',
+    title: 'The Amul',
+    titleAccent: 'Story',
+    tagline: 'How a small idea by farmers grew into a national success.',
+    bannerImage: './images/secondary_dairy_factory.jpg',
+    events: [
+      {
+        id: 'story-coop-formed',
+        order: 1,
+        text: 'Farmers in Gujarat formed a cooperative to work together.',
+        hint: 'It all began in 1946 in Anand, when dairy farmers decided to unite instead of selling alone to middlemen.',
+        illustrationKey: 'amul-collection',
+      },
+      {
+        id: 'story-milk-collected',
+        order: 2,
+        text: 'Milk was collected daily from many villages.',
+        hint: 'Once the cooperative existed, every village society began collecting milk from its members each day.',
+        illustrationKey: 'dairy-milking',
+        imageUrl: './images/primary_dairy_cow.jpg',
+      },
+      {
+        id: 'story-milk-processed',
+        order: 3,
+        text: 'Milk was processed into products like butter, cheese and milk powder.',
+        hint: 'Collected milk had to be turned into long-lasting products before it could be sold far away.',
+        illustrationKey: 'amul-plant',
+        imageUrl: './images/secondary_dairy_factory.jpg',
+      },
+      {
+        id: 'story-brand-built',
+        order: 4,
+        text: 'Amul created a strong brand and smart marketing.',
+        hint: 'With good products ready, the cooperative needed a name people across India would trust.',
+        illustrationKey: 'butter-processing',
+      },
+      {
+        id: 'story-sold-india',
+        order: 5,
+        text: 'Amul products were sold across India.',
+        hint: 'A trusted brand helped the products reach shops in every corner of the country.',
+        illustrationKey: 'bazaar-shop',
+        imageUrl: './images/tertiary_kirana_store.jpg',
+      },
+      {
+        id: 'story-better-prices',
+        order: 6,
+        text: 'Farmers received better prices and their lives improved.',
+        hint: 'The money from sales across India flowed back to the farmer-members. This is the happy ending!',
+        illustrationKey: 'amul-consumer',
+      },
+    ],
+  },
+  {
+    id: 'milk-packet',
+    title: 'A Milk Packet’s',
+    titleAccent: 'Journey',
+    tagline: 'Follow the milk from the cow to your breakfast table.',
+    bannerImage: './images/tertiary_milk_tanker.jpg',
+    events: [
+      {
+        id: 'packet-milking',
+        order: 1,
+        text: 'Farmers milk their cows early in the morning.',
+        hint: 'Nothing can happen until the milk comes from the cow. That is primary sector work.',
+        illustrationKey: 'dairy-milking',
+        imageUrl: './images/primary_dairy_cow.jpg',
+      },
+      {
+        id: 'packet-fat-test',
+        order: 2,
+        text: 'Milk is tested for fat at the village cooperative.',
+        hint: 'Farmers carry their pails to the village society, where milk is measured so they are paid fairly.',
+        illustrationKey: 'amul-collection',
+      },
+      {
+        id: 'packet-tanker',
+        order: 3,
+        text: 'Chilled milk travels by tanker to the dairy plant.',
+        hint: 'Milk from many villages must be moved, cold, to one big plant. Transport is a tertiary service.',
+        illustrationKey: 'milk-tanker',
+        imageUrl: './images/tertiary_milk_tanker.jpg',
+      },
+      {
+        id: 'packet-pasteurised',
+        order: 4,
+        text: 'Milk is pasteurised and packed at the plant.',
+        hint: 'The factory heats milk to kill germs and seals it into packets. That is secondary sector work.',
+        illustrationKey: 'amul-plant',
+        imageUrl: './images/secondary_dairy_factory.jpg',
+      },
+      {
+        id: 'packet-shops',
+        order: 5,
+        text: 'Delivery vans supply milk packets to local shops.',
+        hint: 'Packed milk must reach the shops near your home before anyone can buy it.',
+        illustrationKey: 'bazaar-shop',
+        imageUrl: './images/tertiary_kirana_store.jpg',
+      },
+      {
+        id: 'packet-family',
+        order: 6,
+        text: 'Families buy the milk and enjoy it at home.',
+        hint: 'The consumer is always the last step of the chain.',
+        illustrationKey: 'amul-consumer',
+      },
+    ],
+  },
+  {
+    id: 'village-society',
+    title: 'A Day at the',
+    titleAccent: 'Dairy Society',
+    tagline: 'What happens at the village cooperative every morning.',
+    bannerImage: './images/primary_dairy_cow.jpg',
+    events: [
+      {
+        id: 'society-bring-milk',
+        order: 1,
+        text: 'A farmer brings fresh milk to the village society.',
+        hint: 'The day starts when farmers arrive at the society with their milk cans.',
+        illustrationKey: 'dairy-milking',
+        imageUrl: './images/primary_dairy_cow.jpg',
+      },
+      {
+        id: 'society-weigh-test',
+        order: 2,
+        text: 'The milk is weighed and tested for fat.',
+        hint: 'Before anyone can decide the price, the society must know how much milk there is and how rich it is.',
+        illustrationKey: 'amul-collection',
+      },
+      {
+        id: 'society-price-slip',
+        order: 3,
+        text: 'The farmer gets a slip showing the fair price.',
+        hint: 'The price is worked out from the weight and fat test, so the slip comes right after testing.',
+        illustrationKey: 'village-bank',
+      },
+      {
+        id: 'society-chilling',
+        order: 4,
+        text: 'All the milk is poured into a big chilling tank.',
+        hint: 'Milk from every farmer is kept cold together so it does not spoil while it waits.',
+        illustrationKey: 'butter-processing',
+      },
+      {
+        id: 'society-tanker',
+        order: 5,
+        text: 'A tanker collects the chilled milk for the dairy.',
+        hint: 'Once the milk is chilled and ready, the tanker picks it up for the dairy plant.',
+        illustrationKey: 'milk-tanker',
+        imageUrl: './images/tertiary_milk_tanker.jpg',
+      },
+      {
+        id: 'society-payment',
+        order: 6,
+        text: 'The farmer’s payment is credited to their bank account.',
+        hint: 'Payment is the final step, after the milk has been sent on to the dairy.',
+        illustrationKey: 'village-bank',
+      },
+    ],
   },
 ];

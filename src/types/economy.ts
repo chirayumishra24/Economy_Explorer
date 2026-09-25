@@ -107,6 +107,7 @@ export interface SectorCard {
   hint: string;
   funFact: string;
   illustrationKey: string;
+  imageUrl?: string;
   hindiTitle?: string;
   hindiDescription?: string;
 }
@@ -124,6 +125,24 @@ export interface AmulStageCard {
   illustrationKey: string;
   hindiTitle?: string;
   hindiDescription?: string;
+}
+
+export interface StoryEvent {
+  id: string;
+  order: number;                 // 1-based position in the correct sequence
+  text: string;
+  hint: string;
+  illustrationKey: string;
+  imageUrl?: string;
+}
+
+export interface StoryRound {
+  id: string;
+  title: string;
+  titleAccent: string;
+  tagline: string;
+  bannerImage: string;
+  events: StoryEvent[];
 }
 
 export interface TeamProfile {

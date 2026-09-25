@@ -1,30 +1,36 @@
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Sector, SectorCard } from '../../types/economy';
-import { ActivitySceneRenderer } from '../illustrations/ActivityScenes';
+import { CardArt, TEAM_STYLE, TeamId } from './ArenaChrome';
 
-interface PlacedCardInfo {
+export interface SectorTheme {
+  frame: string;
+  body: string;
+  title: string;
+  subtitle: string;
+  slot: string;
+  plus: string;
+  ring: string;
+}
+
+export interface SectorPlacement {
   card: SectorCard;
-  teamId: 'teamA' | 'teamB';
-  teamAvatar: string;
+  team: TeamId;
 }
 
 interface SectorDropColumnProps {
   sector: Sector;
   title: string;
   subtitle: string;
-  definition: string;
-  icon: string;
-  colorTheme: {
-    bg: string;
-    border: string;
-    headerBg: string;
-    textColor: string;
-    accentGlow: string;
-    badgeBg: string;
-  };
-  placedCards: PlacedCardInfo[];
-  isCardSelected: boolean;
-  onDropCard: (sector: Sector) => void;
+  image: string;
+  theme: SectorTheme;
+  placements: SectorPlacement[];
+  slotCount: number;
+  teamNames: Record<TeamId, string>;
+  /** A card is selected, so tapping the column places it. */
+  canTapPlace: boolean;
+  flash: 'good' | 'bad' | null;
+  onPlace: (cardId: string, sector: Sector) => void;
   onTapPlace: (sector: Sector) => void;
 }
 
@@ -32,147 +38,104 @@ export const SectorDropColumn: React.FC<SectorDropColumnProps> = ({
   sector,
   title,
   subtitle,
-  definition,
-  icon,
-  colorTheme,
-  placedCards,
-  isCardSelected,
-  onDropCard,
+  image,
+  theme,
+  placements,
+  slotCount,
+  teamNames,
+  canTapPlace,
+  flash,
+  onPlace,
   onTapPlace,
 }) => {
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (!isDragOver) setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
+  const [isOver, setIsOver] = useState(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragOver(false);
-    onDropCard(sector);
+    setIsOver(false);
+    const cardId = e.dataTransfer.getData('text/plain');
+    if (cardId) onPlace(cardId, sector);
   };
+
+  const slots = Array.from({ length: Math.max(slotCount, placements.length) }, (_, i) => placements[i] ?? null);
 
   return (
     <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      role={canTapPlace ? 'button' : undefined}
+      tabIndex={canTapPlace ? 0 : undefined}
+      aria-label={canTapPlace ? `Place selected card in ${title}` : undefined}
+      onClick={canTapPlace ? () => onTapPlace(sector) : undefined}
+      onKeyDown={(e) => {
+        if (canTapPlace && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onTapPlace(sector);
+        }
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!isOver) setIsOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsOver(false);
+      }}
       onDrop={handleDrop}
-      onClick={() => isCardSelected && onTapPlace(sector)}
-      className={`flex-1 min-w-[280px] max-w-full flex flex-col rounded-card border-2 transition-all duration-200 select-none overflow-hidden relative shadow-sm ${
-        colorTheme.bg
-      } ${colorTheme.border} ${
-        isDragOver
-          ? `ring-4 ${colorTheme.accentGlow} scale-[1.02] shadow-lift bg-white`
-          : isCardSelected
-          ? 'cursor-pointer hover:border-textMain/60 ring-2 ring-accentYellow/50'
-          : ''
+      className={`relative flex flex-col min-h-0 rounded-[20px] border-[3px] ${theme.frame} bg-gradient-to-b ${
+        theme.body
+      } overflow-hidden shadow-[0_6px_18px_rgba(30,64,120,0.14)] transition-all duration-200 ${
+        isOver ? `ring-4 ${theme.ring} scale-[1.02]` : ''
+      } ${canTapPlace && !isOver ? `ring-2 ${theme.ring} cursor-pointer hover:scale-[1.01]` : ''} ${
+        flash === 'good' ? 'ring-4 ring-emerald-400' : flash === 'bad' ? 'ring-4 ring-red-400 animate-shake' : ''
       }`}
     >
-      {/* Column Header */}
-      <div className={`p-3.5 border-b ${colorTheme.headerBg} flex items-center justify-between`}>
-        <div className="flex items-center gap-2">
-          <span className="text-2xl filter drop-shadow-sm">{icon}</span>
-          <div>
-            <h3 className={`text-base sm:text-lg font-black tracking-tight leading-tight ${colorTheme.textColor}`}>
-              {title}
-            </h3>
-            <p className="text-[11px] font-semibold text-textMuted leading-tight">{subtitle}</p>
-          </div>
-        </div>
-
-        {/* Counter Badge */}
-        <span
-          className={`text-xs font-black px-2.5 py-1 rounded-full border shadow-sm ${colorTheme.badgeBg}`}
-          title={`${placedCards.length} cards categorized into this sector`}
-        >
-          {placedCards.length} Cards
-        </span>
+      <div className="relative h-20 xl:h-28 2xl:h-32 shrink-0">
+        <img src={image} alt="" draggable={false} className="w-full h-full object-cover" />
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white/95 to-transparent" />
       </div>
 
-      {/* Explanatory Definition Banner */}
-      <div className="px-3 py-1.5 bg-white/70 border-b border-border/40 text-[11px] font-medium text-textMuted flex items-center gap-1.5">
-        <span className="font-bold text-textMain shrink-0">Rule:</span>
-        <span className="truncate">{definition}</span>
+      <div className="text-center px-2 pt-1 pb-1.5 bg-white/95 shrink-0">
+        <h3 className={`font-black uppercase leading-tight text-base xl:text-[22px] ${theme.title}`}>{title}</h3>
+        <p className={`text-xs xl:text-sm font-semibold ${theme.subtitle}`}>{subtitle}</p>
       </div>
 
-      {/* Drop / Placement Area */}
-      <div className="flex-1 p-2.5 flex flex-col gap-2 overflow-y-auto max-h-[460px] scrollable-panel">
-        {placedCards.length === 0 ? (
-          <div
-            className={`flex-1 min-h-[160px] border-2 border-dashed rounded-card flex flex-col items-center justify-center p-4 text-center transition-all ${
-              isDragOver
-                ? 'border-statusSuccess bg-statusSuccess/10 scale-98'
-                : isCardSelected
-                ? 'border-accentYellow bg-accentYellow/10 animate-pulse'
-                : 'border-border/80 bg-surface/50 text-textMuted'
-            }`}
-          >
-            <span className="text-3xl mb-1.5 opacity-80">{icon}</span>
-            <p className="text-xs sm:text-sm font-bold text-textMain mb-0.5">
-              {isDragOver
-                ? 'Release to drop here!'
-                : isCardSelected
-                ? '👉 Click here to place card!'
-                : 'Drag matching card here'}
-            </p>
-            <p className="text-[10px] text-textMuted max-w-[200px]">
-              {isCardSelected ? 'Or drop dragged card' : 'Select a card and place it in this sector'}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* List of placed cards */}
-            <div className="grid grid-cols-1 gap-2">
-              {placedCards.map((item, idx) => (
-                <div
-                  key={`${item.card.id}-${idx}`}
-                  className="bg-surface rounded-card p-2 border border-border shadow-soft flex items-center gap-2.5 animate-fadeIn"
-                >
-                  {/* Thumbnail */}
-                  <div className="w-14 h-11 shrink-0 rounded-lg overflow-hidden border border-border bg-background">
-                    <ActivitySceneRenderer illustrationKey={item.card.illustrationKey} />
-                  </div>
-
-                  {/* Card Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                      <h4 className="text-xs font-black text-textMain truncate leading-tight">
-                        {item.card.title}
-                      </h4>
-                      <span
-                        className="text-xs shrink-0"
-                        title={`Categorized by ${item.teamId === 'teamA' ? 'Team A' : 'Team B'}`}
-                      >
-                        {item.teamAvatar}
-                      </span>
-                    </div>
-                    <p className="text-[10px] font-semibold text-textMuted truncate">{item.card.actor}</p>
-                    <p className="text-[9px] text-statusSuccess font-bold truncate">✓ {item.card.activityKind}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Sub-drop zone when cards are already present */}
+      <div className="flex-1 min-h-0 flex flex-col gap-1.5 xl:gap-2 p-2 xl:p-3">
+        {slots.map((placement, i) =>
+          placement ? (
             <div
-              className={`py-2 px-3 border border-dashed rounded-btn text-center text-xs font-bold transition-colors ${
-                isDragOver
-                  ? 'border-statusSuccess bg-statusSuccess/15 text-statusSuccess'
-                  : isCardSelected
-                  ? 'border-accentYellow bg-accentYellow/15 text-textMain animate-pulse cursor-pointer'
-                  : 'border-border/60 text-textMuted/70'
-              }`}
+              key={placement.card.id}
+              className={`flex-1 min-h-[42px] flex items-center gap-2 rounded-xl bg-white border-2 ${
+                placement.team === 'teamA' ? 'border-blue-300' : 'border-orange-300'
+              } px-1.5 py-1 shadow-sm animate-popIn`}
             >
-              {isDragOver ? 'Drop here!' : isCardSelected ? '+ Click to place selected card here' : '+ Drop next card here'}
+              <div className="h-9 xl:h-11 aspect-[4/3] rounded-lg overflow-hidden shrink-0 bg-slate-100">
+                <CardArt
+                  imageUrl={placement.card.imageUrl}
+                  illustrationKey={placement.card.illustrationKey}
+                  alt={placement.card.title}
+                />
+              </div>
+              <span className="flex-1 min-w-0 text-[11px] xl:text-[13px] font-bold text-slate-700 leading-tight line-clamp-2 text-left">
+                {placement.card.title}
+              </span>
+              <span
+                className={`shrink-0 w-6 h-6 rounded-full text-[10px] font-black text-white flex items-center justify-center shadow ${
+                  TEAM_STYLE[placement.team].solid
+                }`}
+                title={`Sorted by ${teamNames[placement.team]}`}
+              >
+                {TEAM_STYLE[placement.team].initial}
+              </span>
             </div>
-          </>
+          ) : (
+            <div
+              key={`empty-${i}`}
+              className={`flex-1 min-h-[42px] rounded-xl border-2 border-dashed ${theme.slot} flex items-center justify-center`}
+            >
+              <span className={`w-7 h-7 xl:w-8 xl:h-8 rounded-full flex items-center justify-center ${theme.plus}`}>
+                <Plus className="w-4 h-4 xl:w-5 xl:h-5" strokeWidth={3} />
+              </span>
+            </div>
+          )
         )}
       </div>
     </div>

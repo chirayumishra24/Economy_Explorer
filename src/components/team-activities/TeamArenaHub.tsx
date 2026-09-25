@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { SectorSorterBattle } from './SectorSorterBattle';
 import { AmulFlowchartChallenge } from './AmulFlowchartChallenge';
 import { sound } from '../../utils/audio';
-import { WheatHarvestScene, AmulPlantScene } from '../illustrations/ActivityScenes';
 
 interface TeamArenaHubProps {
   initialActivity?: 'sector-battle' | 'amul-flowchart' | 'menu';
@@ -61,12 +60,12 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
           className="px-3.5 py-2 rounded-btn border border-border bg-surface hover:bg-background text-textMain text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm min-h-[40px]"
         >
           <span>←</span>
-          <span>Back to Solo Exploration</span>
+          <span>Return to Welcome Screen</span>
         </button>
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-wider border border-blue-200">
-            👥 2-Team Multiplayer Mode
+            👥 2-Team Multiplayer Arena
           </span>
         </div>
       </div>
@@ -96,30 +95,30 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
             {/* Top Accent Tag */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                Activity 1 • Turn-Based Game
+                Activity 1 • Sector Sort
               </span>
               <span className="text-xl">🌾 🏭 🚚</span>
             </div>
 
             {/* Illustration Graphic */}
-            <div className="w-full h-36 rounded-lg overflow-hidden border border-border bg-background mb-3 group-hover:scale-102 transition-transform">
-              <WheatHarvestScene className="w-full h-full" />
+            <div className="w-full h-44 rounded-lg overflow-hidden border border-border bg-background mb-3 group-hover:scale-102 transition-transform">
+              <img src="./images/primary_farmer_wheat.jpg" alt="Primary Sector Farmer" className="w-full h-full object-cover" />
             </div>
 
             {/* Content */}
             <div className="flex-1">
               <h3 className="text-lg sm:text-xl font-black text-textMain mb-1.5 group-hover:text-emerald-700 transition-colors">
-                Sector Showdown (3 Columns)
+                Sector Sort
               </h3>
               <p className="text-xs sm:text-sm text-textMuted leading-relaxed mb-4">
-                Both teams take turns examining illustrated cards and dragging them into Primary, Secondary,
-                or Tertiary columns. Features live scoreboards, streaks, and clues!
+                Team Knowledge and Team Heritage take turns dragging picture cards into the Primary, Secondary,
+                or Tertiary column. One point for every correct placement!
               </p>
             </div>
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-              <span className="text-xs font-bold text-textMuted">12 Scenario Cards • 2 Teams</span>
+              <span className="text-xs font-bold text-textMuted">12 Picture Cards • 6 Rounds</span>
               <span className="px-4 py-2 rounded-btn bg-emerald-600 group-hover:bg-emerald-700 text-white font-black text-xs shadow-sm flex items-center gap-1 transition-colors">
                 <span>Play Battle</span>
                 <span>→</span>
@@ -135,30 +134,30 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
             {/* Top Accent Tag */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300">
-                Activity 2 • Case Study Race
+                Activity 2 • Amul Story Sequence
               </span>
               <span className="text-xl">🥛 🚛 🏢</span>
             </div>
 
             {/* Illustration Graphic */}
-            <div className="w-full h-36 rounded-lg overflow-hidden border border-border bg-background mb-3 group-hover:scale-102 transition-transform">
-              <AmulPlantScene className="w-full h-full" />
+            <div className="w-full h-44 rounded-lg overflow-hidden border border-border bg-background mb-3 group-hover:scale-102 transition-transform">
+              <img src="./images/secondary_dairy_factory.jpg" alt="Amul Dairy Processing Plant" className="w-full h-full object-cover" />
             </div>
 
             {/* Content */}
             <div className="flex-1">
               <h3 className="text-lg sm:text-xl font-black text-textMain mb-1.5 group-hover:text-blue-700 transition-colors">
-                The Amul Case Study Flowchart
+                Amul Story Sequence
               </h3>
               <p className="text-xs sm:text-sm text-textMuted leading-relaxed mb-4">
-                Both teams sequence the 6 stages of the Anand Milk Union Limited cooperative dairy flow.
-                Hit &ldquo;Test Milk Flow&rdquo; to simulate live milk pumping through the animated pipeline!
+                Both teams build their own 6-step flowchart at the same time, putting the events of the Amul
+                story in order. Use hints wisely, then submit your order!
               </p>
             </div>
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-              <span className="text-xs font-bold text-textMuted">6 Flowchart Steps • Milk Simulation</span>
+              <span className="text-xs font-bold text-textMuted">3 Stories • 6 Steps Each</span>
               <span className="px-4 py-2 rounded-btn bg-blue-600 group-hover:bg-blue-700 text-white font-black text-xs shadow-sm flex items-center gap-1 transition-colors">
                 <span>Start Flowchart</span>
                 <span>→</span>

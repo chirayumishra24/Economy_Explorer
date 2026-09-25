@@ -19,7 +19,7 @@ export const StartScreen: React.FC = () => {
 
   const handleStart = () => {
     sound.playMachineStart();
-    dispatch({ type: 'NAVIGATE_STOP', stop: 'explore' });
+    dispatch({ type: 'SET_SCREEN', screen: 'team-games' });
   };
 
   const handleSkipOrClick = () => {
@@ -52,7 +52,7 @@ export const StartScreen: React.FC = () => {
           THE ECONOMY MACHINE
         </h1>
         <p className="text-base sm:text-lg text-textMuted max-w-xl mx-auto font-medium">
-          See How an Economy Works · NCERT Class 6 Social Science
+          Classroom 2-Team Interactive Economics Arena &bull; NCERT Class 6
         </p>
       </div>
 
@@ -145,14 +145,14 @@ export const StartScreen: React.FC = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row items-center gap-3.5 z-10 flex-wrap justify-center">
+      <div className="flex flex-col sm:flex-row items-center gap-4 z-10 flex-wrap justify-center">
         <button
           onClick={(e) => {
             e.stopPropagation();
             sound.playClick();
             setShowHowToPlay(true);
           }}
-          className="px-5 py-3 rounded-btn border-2 border-border bg-surface hover:bg-background text-textMain font-bold text-sm sm:text-base shadow-soft transition-all min-h-[44px] min-w-[140px] active:scale-95"
+          className="px-6 py-3.5 rounded-btn border-2 border-border bg-surface hover:bg-background text-textMain font-bold text-base shadow-soft transition-all min-h-[48px] min-w-[150px] active:scale-95"
         >
           HOW TO PLAY
         </button>
@@ -162,22 +162,10 @@ export const StartScreen: React.FC = () => {
             e.stopPropagation();
             handleStart();
           }}
-          className="px-6 py-3 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-black text-sm sm:text-base shadow-lift transition-all min-h-[44px] min-w-[180px] flex items-center justify-center gap-2 active:scale-95 group"
+          className="px-8 py-3.5 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-black text-base shadow-lift transition-all min-h-[48px] min-w-[250px] flex items-center justify-center gap-2 active:scale-95 group border-2 border-accentYellow"
         >
-          <span>SOLO EXPLORATION</span>
+          <span>👥 START 2-TEAM BATTLE ARENA</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            sound.playMachineStart();
-            dispatch({ type: 'SET_SCREEN', screen: 'team-games' });
-          }}
-          className="px-6 py-3 rounded-btn bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-base shadow-lift transition-all min-h-[44px] min-w-[200px] flex items-center justify-center gap-2 active:scale-95 group border-2 border-blue-400"
-        >
-          <span>👥 2-TEAM BATTLE ARENA</span>
-          <span className="group-hover:translate-x-1 transition-transform">★</span>
         </button>
       </div>
 

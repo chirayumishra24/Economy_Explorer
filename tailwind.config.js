@@ -35,7 +35,41 @@ export default {
         'xl': ['22px', '30px'],
         '2xl': ['28px', '36px'],
         '3xl': ['40px', '48px'],
-      }
+      },
+      scale: {
+        '102': '1.02',
+      },
+      keyframes: {
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%, 60%': { transform: 'translateX(-6px)' },
+          '40%, 80%': { transform: 'translateX(6px)' },
+        },
+        fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        scaleUp: {
+          from: { opacity: '0', transform: 'scale(0.92)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+        popIn: {
+          '0%': { opacity: '0', transform: 'scale(0.6)' },
+          '70%': { opacity: '1', transform: 'scale(1.06)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        floaty: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+      },
+      animation: {
+        shake: 'shake 0.5s ease-in-out',
+        fadeIn: 'fadeIn 0.3s ease-out both',
+        scaleUp: 'scaleUp 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both',
+        popIn: 'popIn 0.4s ease-out both',
+        floaty: 'floaty 3s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

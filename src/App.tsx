@@ -46,7 +46,7 @@ export const App: React.FC = () => {
               ? 'amul-flowchart'
               : 'menu'
           }
-          onBackToMain={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'explore' })}
+          onBackToMain={() => dispatch({ type: 'SET_SCREEN', screen: 'start' })}
         />
       </main>
     );

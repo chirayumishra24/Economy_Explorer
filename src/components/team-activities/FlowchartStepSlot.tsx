@@ -1,159 +1,154 @@
-import React from 'react';
-import { AmulStageCard } from '../../types/economy';
-import { ActivitySceneRenderer } from '../illustrations/ActivityScenes';
+import React, { useState } from 'react';
+import { Check, Lightbulb, X } from 'lucide-react';
+import { StoryEvent } from '../../types/economy';
+import { CardArt, TeamId } from './ArenaChrome';
+
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'];
+
+const SLOT_STYLE: Record<TeamId, { idle: string; number: string; placeholder: string }> = {
+  teamA: {
+    idle: 'border-sky-300 bg-sky-50/70',
+    number: 'bg-gradient-to-b from-sky-400 to-blue-600',
+    placeholder: 'text-slate-500',
+  },
+  teamB: {
+    idle: 'border-orange-300 bg-orange-50/70',
+    number: 'bg-gradient-to-b from-amber-400 to-orange-600',
+    placeholder: 'text-orange-700/80',
+  },
+};
 
 interface FlowchartStepSlotProps {
-  stepNumber: number;
-  expectedTitle: string;
-  expectedSector: string;
-  placedCard: AmulStageCard | null;
-  isSelectedForDrop: boolean;
-  isSimulating: boolean;
-  isFlowingPast: boolean;
-  hasError: boolean;
-  errorMessage?: string;
-  onDropCard: (stepNumber: number) => void;
-  onRemoveCard: (stepNumber: number) => void;
-  onTapSlot: (stepNumber: number) => void;
+  index: number;
+  team: TeamId;
+  event: StoryEvent | null;
+  result: 'correct' | 'wrong' | null;
+  /** Placed by a hint, so it cannot be moved. */
+  locked: boolean;
+  highlightEmpty: boolean;
+  /** An event card is selected, so tapping this slot places it. */
+  canTapPlace: boolean;
+  disabled: boolean;
+  onDropEvent: (eventId: string, index: number) => void;
+  onTap: (index: number) => void;
+  onRemove: (index: number) => void;
 }
 
 export const FlowchartStepSlot: React.FC<FlowchartStepSlotProps> = ({
-  stepNumber,
-  expectedTitle,
-  expectedSector,
-  placedCard,
-  isSelectedForDrop,
-  isSimulating,
-  isFlowingPast,
-  hasError,
-  onDropCard,
-  onRemoveCard,
-  onTapSlot,
+  index,
+  team,
+  event,
+  result,
+  locked,
+  highlightEmpty,
+  canTapPlace,
+  disabled,
+  onDropEvent,
+  onTap,
+  onRemove,
 }) => {
-  const [isDragOver, setIsDragOver] = React.useState(false);
+  const [isOver, setIsOver] = useState(false);
+  const style = SLOT_STYLE[team];
+  const acceptsInput = !disabled && !locked;
+  const tappable = acceptsInput && canTapPlace;
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (!isDragOver) setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    onDropCard(stepNumber);
-  };
+  const stateClass =
+    result === 'correct'
+      ? 'border-solid border-emerald-400 bg-emerald-50'
+      : result === 'wrong'
+      ? 'border-solid border-red-400 bg-red-50'
+      : highlightEmpty && !event
+      ? 'border-dashed border-red-400 bg-red-50 animate-shake'
+      : event
+      ? `border-solid ${style.idle} bg-white`
+      : `border-dashed ${style.idle}`;
 
   return (
-    <div className="flex-1 min-w-[200px] max-w-[240px] flex flex-col relative select-none">
-      {/* Step Slot Box */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => onTapSlot(stepNumber)}
-        className={`w-full min-h-[220px] rounded-card border-2 p-2.5 flex flex-col justify-between transition-all duration-200 relative ${
-          hasError
-            ? 'border-statusDisrupted bg-statusDisrupted/10 ring-4 ring-statusDisrupted/30 animate-shake'
-            : isFlowingPast
-            ? 'border-blue-500 bg-blue-50/90 ring-4 ring-blue-300 shadow-lift scale-102'
-            : isDragOver
-            ? 'border-accentYellow bg-accentYellow/15 scale-102 shadow-lift'
-            : isSelectedForDrop
-            ? 'border-blue-400 bg-blue-50/40 ring-2 ring-blue-300 animate-pulse cursor-pointer'
-            : placedCard
-            ? 'border-border/80 bg-surface shadow-soft'
-            : 'border-dashed border-border/80 bg-background/80 hover:bg-surface/80'
+    <div
+      role={tappable ? 'button' : undefined}
+      tabIndex={tappable ? 0 : undefined}
+      aria-label={tappable ? `Place selected event at step ${index + 1}` : undefined}
+      onClick={tappable ? () => onTap(index) : undefined}
+      onKeyDown={(e) => {
+        if (tappable && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onTap(index);
+        }
+      }}
+      onDragOver={(e) => {
+        if (!acceptsInput) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!isOver) setIsOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsOver(false);
+        const eventId = e.dataTransfer.getData('text/plain');
+        if (eventId && acceptsInput) onDropEvent(eventId, index);
+      }}
+      className={`relative flex items-center gap-2 xl:gap-2.5 rounded-xl border-2 px-2 py-1 min-h-[44px] xl:min-h-[52px] transition-all ${stateClass} ${
+        isOver ? 'ring-4 ring-amber-300 scale-[1.02]' : tappable ? 'ring-2 ring-amber-300 cursor-pointer' : ''
+      }`}
+    >
+      <span
+        className={`w-8 h-8 xl:w-9 xl:h-9 shrink-0 rounded-full flex items-center justify-center font-black text-white text-sm xl:text-base shadow ${
+          result === 'correct' ? 'bg-emerald-500' : result === 'wrong' ? 'bg-red-500' : style.number
         }`}
       >
-        {/* Step Header */}
-        <div className="flex items-center justify-between gap-1 mb-1.5 pb-1 border-b border-border/50">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${
-                isFlowingPast
-                  ? 'bg-blue-600 text-white animate-pulse'
-                  : hasError
-                  ? 'bg-statusDisrupted text-white'
-                  : placedCard
-                  ? 'bg-textMain text-surface'
-                  : 'bg-border text-textMuted'
-              }`}
-            >
-              {stepNumber}
-            </span>
-            <span className="text-[11px] font-black text-textMain uppercase tracking-wider truncate">
-              Step {stepNumber}
-            </span>
-          </div>
+        {index + 1}
+      </span>
 
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accentYellow/20 text-textMain border border-accentYellow/30">
-            {expectedSector}
-          </span>
-        </div>
-
-        {/* Content area: Placed Card or Empty Placeholder */}
-        {placedCard ? (
-          <div className="flex-1 flex flex-col justify-between">
-            {/* Card Thumbnail */}
-            <div className="w-full h-24 rounded-lg overflow-hidden border border-border bg-background relative mb-1.5">
-              <ActivitySceneRenderer illustrationKey={placedCard.illustrationKey} />
-              
-              {/* Remove button */}
-              {!isSimulating && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveCard(stepNumber);
-                  }}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-textMain/80 hover:bg-statusDisrupted text-surface text-[10px] flex items-center justify-center transition-colors shadow-sm"
-                  title="Remove card"
-                >
-                  ✕
-                </button>
-              )}
+      {event ? (
+        <>
+          <div
+            draggable={acceptsInput}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', event.id);
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+            className={`flex-1 min-w-0 flex items-center gap-2 animate-popIn ${acceptsInput ? 'cursor-grab active:cursor-grabbing' : ''}`}
+          >
+            <div className="w-11 h-8 xl:w-14 xl:h-10 rounded-md overflow-hidden shrink-0 bg-slate-100 pointer-events-none">
+              <CardArt imageUrl={event.imageUrl} illustrationKey={event.illustrationKey} alt="" />
             </div>
-
-            {/* Title & Short description */}
-            <div className="text-left flex-1">
-              <h4 className="text-xs font-black text-textMain leading-tight line-clamp-2 mb-1">
-                {placedCard.title}
-              </h4>
-              <p className="text-[10px] font-medium text-textMuted line-clamp-2 leading-relaxed">
-                {placedCard.description}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-2 text-center text-textMuted">
-            <span className="text-2xl mb-1 opacity-60">📥</span>
-            <span className="text-xs font-bold text-textMain">Drop Step {stepNumber}</span>
-            <span className="text-[10px] text-textMuted leading-tight mt-0.5">
-              {expectedTitle}
+            <span className="text-[11px] xl:text-[13px] font-semibold text-slate-700 leading-tight line-clamp-2">
+              {event.text}
             </span>
           </div>
-        )}
-
-        {/* Fluid Flow status indicator */}
-        {isFlowingPast && (
-          <div className="w-full mt-1.5 py-1 px-2 rounded bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 shadow-sm">
-            <span>🥛</span>
-            <span>Milk Flowing...</span>
-          </div>
-        )}
-
-        {hasError && (
-          <div className="w-full mt-1.5 py-1 px-2 rounded bg-statusDisrupted text-white text-[10px] font-bold flex items-center justify-center gap-1 shadow-sm">
-            <span>⚠️</span>
-            <span>Order Misaligned!</span>
-          </div>
-        )}
-      </div>
+          {result === 'correct' ? (
+            <Check className="w-5 h-5 text-emerald-600 shrink-0" strokeWidth={3} aria-label="Correct position" />
+          ) : result === 'wrong' ? (
+            <X className="w-5 h-5 text-red-500 shrink-0" strokeWidth={3} aria-label="Wrong position" />
+          ) : locked ? (
+            <span title="Placed by a hint" className="shrink-0">
+              <Lightbulb className="w-5 h-5 text-amber-500" strokeWidth={2.5} />
+            </span>
+          ) : (
+            !disabled && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(index);
+                }}
+                title="Remove from this step"
+                aria-label={`Remove event from step ${index + 1}`}
+                className="w-6 h-6 shrink-0 rounded-full bg-slate-200 hover:bg-red-500 hover:text-white text-slate-600 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3.5 h-3.5" strokeWidth={3} />
+              </button>
+            )
+          )}
+        </>
+      ) : (
+        <span className={`flex-1 text-center text-[12px] xl:text-sm font-medium ${style.placeholder}`}>
+          Drop the {ORDINALS[index] ?? `#${index + 1}`} event here
+        </span>
+      )}
     </div>
   );
 };
