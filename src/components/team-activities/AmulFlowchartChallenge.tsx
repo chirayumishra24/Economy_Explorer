@@ -1,482 +1,461 @@
-import React, { useState } from 'react';
-import { AmulStageCard, TeamProfile } from '../../types/economy';
-import { AMUL_FLOWCHART_STAGES, INITIAL_TEAMS } from '../../data/teamActivitiesData';
-import { FlowchartStepSlot } from './FlowchartStepSlot';
-import { MilkPipelineConnector } from './MilkPipelineConnector';
-import { TeamScoreHeader } from './TeamScoreHeader';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowDown, ArrowRight, BookOpen, Check, GripVertical, Lightbulb, RotateCcw, Workflow, X, ListChecks } from 'lucide-react';
+import { StoryEvent, TeamId } from '../../types/economy';
+import { STORY_ROUNDS, TEAMS } from '../../data/teamActivitiesData';
+import {
+  ArenaCard,
+  ArenaShell,
+  PrimaryButton,
+  ResultsModal,
+  TEAM_STYLES,
+  TeamPanelHeader,
+  useCountdown,
+} from './ArenaShell';
 import { ActivitySceneRenderer } from '../illustrations/ActivityScenes';
 import { sound } from '../../utils/audio';
 import { triggerConfettiBurst } from '../../utils/confetti';
+
+const ROUND_SECONDS = 5 * 60;
+const HINTS_PER_GAME = 2;
+const STEPS = 6;
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+
+type Board = (string | null)[];
+const emptyBoard = (): Board => Array(STEPS).fill(null);
+const emptyBoards = (): Record<TeamId, Board> => ({ teamA: emptyBoard(), teamB: emptyBoard() });
+const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+const scoreBoard = (board: Board, events: StoryEvent[]) =>
+  board.reduce((sum, id, i) => sum + (id && id === events[i].id ? 1 : 0), 0);
+
+const EventArt: React.FC<{ event: StoryEvent; className?: string }> = ({ event, className = '' }) =>
+  event.image ? (
+    <img src={event.image} alt="" className={`object-cover ${className}`} draggable={false} />
+  ) : (
+    <div className={`overflow-hidden ${className}`}>
+      <ActivitySceneRenderer illustrationKey={event.illustrationKey ?? ''} className="w-full h-full" />
+    </div>
+  );
 
 interface AmulFlowchartChallengeProps {
   onGoToSectorSorter?: () => void;
   onExit?: () => void;
 }
 
-export const AmulFlowchartChallenge: React.FC<AmulFlowchartChallengeProps> = ({
-  onGoToSectorSorter,
-  onExit,
-}) => {
-  const [teams] = useState<TeamProfile[]>(INITIAL_TEAMS);
-  const [scores, setScores] = useState({ teamA: 0, teamB: 0 });
-  const [streaks, setStreaks] = useState({ teamA: 0, teamB: 0 });
-  const [activeTeamId, setActiveTeamId] = useState<'teamA' | 'teamB'>('teamA');
+export const AmulFlowchartChallenge: React.FC<AmulFlowchartChallengeProps> = ({ onGoToSectorSorter, onExit }) => {
+  const [roundIdx, setRoundIdx] = useState(0);
+  const [boards, setBoards] = useState<Record<TeamId, Board>>(emptyBoards);
+  const [submitted, setSubmitted] = useState<Record<TeamId, boolean>>({ teamA: false, teamB: false });
+  const [hintsLeft, setHintsLeft] = useState<Record<TeamId, number>>({ teamA: HINTS_PER_GAME, teamB: HINTS_PER_GAME });
+  const [roundScores, setRoundScores] = useState<Record<TeamId, number>[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dragTarget, setDragTarget] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Partial<Record<TeamId, string>>>({});
+  const [showFinal, setShowFinal] = useState(false);
 
-  // 6 Flowchart Slots (Index 0 = Step 1, Index 5 = Step 6)
-  const [placedSlots, setPlacedSlots] = useState<(AmulStageCard | null)[]>([
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
+  const round = STORY_ROUNDS[roundIdx];
+  const events = round.events;
+  const [tray, setTray] = useState<StoryEvent[]>(() => shuffle(STORY_ROUNDS[0].events));
+  const eventById = useMemo(() => Object.fromEntries(events.map((e) => [e.id, e])), [events]);
 
-  // Scrambled unplaced cards in the dock
-  const [dockCards, setDockCards] = useState<AmulStageCard[]>(() => {
-    return [...AMUL_FLOWCHART_STAGES].sort(() => Math.random() - 0.5);
-  });
+  const revealed = submitted.teamA && submitted.teamB;
+  const [secondsLeft, resetTimer] = useCountdown(ROUND_SECONDS, !revealed);
+  const isLastRound = roundIdx === STORY_ROUNDS.length - 1;
 
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const liveScore = (team: TeamId) => (revealed ? scoreBoard(boards[team], events) : 0);
 
-  // Simulation & Flow State
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [flowStep, setFlowStep] = useState<number>(-1);
-  const [errorSlotIndex, setErrorSlotIndex] = useState<number | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isCompleteSuccess, setIsCompleteSuccess] = useState(false);
+  // Reveal: record the round's result once both boards are locked in.
+  useEffect(() => {
+    if (!revealed || roundScores.length > roundIdx) return;
+    const result = { teamA: scoreBoard(boards.teamA, events), teamB: scoreBoard(boards.teamB, events) };
+    setRoundScores((prev) => [...prev, result]);
+    if (result.teamA === STEPS || result.teamB === STEPS) triggerConfettiBurst(2500);
+    sound.playSuccessFlourish();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed]);
 
-  const activeTeam = teams.find((t) => t.id === activeTeamId) || teams[0];
-  const otherTeam = teams.find((t) => t.id !== activeTeamId) || teams[1];
-
-  // Drag start from dock
-  const handleDragStart = (e: React.DragEvent, card: AmulStageCard) => {
-    e.dataTransfer.setData('text/plain', card.id);
-    e.dataTransfer.effectAllowed = 'move';
-    setSelectedCardId(card.id);
-  };
-
-  // Place card into slot
-  const handleDropIntoSlot = (slotNumber: number) => {
-    if (!selectedCardId) return;
-    const cardToPlace =
-      dockCards.find((c) => c.id === selectedCardId) ||
-      placedSlots.find((c) => c?.id === selectedCardId);
-
-    if (!cardToPlace) return;
-
-    sound.playProductMove();
-    const slotIdx = slotNumber - 1;
-
-    // If slot already had a card, return old card to dock
-    const existingInSlot = placedSlots[slotIdx];
-
-    const updatedSlots = [...placedSlots];
-    // Remove from previous slot if moved from slot to slot
-    const prevSlotIdx = placedSlots.findIndex((c) => c?.id === cardToPlace.id);
-    if (prevSlotIdx !== -1) {
-      updatedSlots[prevSlotIdx] = null;
-    }
-    updatedSlots[slotIdx] = cardToPlace;
-    setPlacedSlots(updatedSlots);
-
-    // Update dock
-    let updatedDock = dockCards.filter((c) => c.id !== cardToPlace.id);
-    if (existingInSlot && existingInSlot.id !== cardToPlace.id) {
-      updatedDock = [...updatedDock, existingInSlot];
-    }
-    setDockCards(updatedDock);
-
-    setSelectedCardId(null);
-    setErrorSlotIndex(null);
-    setErrorMessage(null);
-  };
-
-  // Remove card from slot
-  const handleRemoveFromSlot = (slotNumber: number) => {
-    sound.playClick();
-    const slotIdx = slotNumber - 1;
-    const card = placedSlots[slotIdx];
-    if (!card) return;
-
-    const updatedSlots = [...placedSlots];
-    updatedSlots[slotIdx] = null;
-    setPlacedSlots(updatedSlots);
-
-    setDockCards((prev) => [...prev, card]);
-    setErrorSlotIndex(null);
-    setErrorMessage(null);
-  };
-
-  // Run Flow Simulation
-  const handleRunSimulation = () => {
-    // Check if all 6 slots are filled
-    const emptySlotIdx = placedSlots.findIndex((s) => s === null);
-    if (emptySlotIdx !== -1) {
+  // Time's up: lock both boards as they are.
+  useEffect(() => {
+    if (secondsLeft === 0 && !revealed) {
       sound.playBuzzer();
-      setErrorSlotIndex(emptySlotIdx);
-      setErrorMessage(`⚠️ Step ${emptySlotIdx + 1} is empty! Please place all 6 stages of the Amul milk chain.`);
+      setSubmitted({ teamA: true, teamB: true });
+    }
+  }, [secondsLeft, revealed]);
+
+  const flash = (team: TeamId, text: string) => {
+    setNotice((prev) => ({ ...prev, [team]: text }));
+    window.setTimeout(() => setNotice((prev) => (prev[team] === text ? { ...prev, [team]: undefined } : prev)), 2600);
+  };
+
+  const place = (team: TeamId, slot: number, eventId: string) => {
+    if (submitted[team] || !eventById[eventId]) return;
+    sound.playProductMove();
+    setBoards((prev) => {
+      const next = prev[team].map((id) => (id === eventId ? null : id));
+      next[slot] = eventId;
+      return { ...prev, [team]: next };
+    });
+    setSelectedId(null);
+  };
+
+  const removeFromSlot = (team: TeamId, slot: number) => {
+    if (submitted[team]) return;
+    sound.playClick();
+    setBoards((prev) => {
+      const next = [...prev[team]];
+      next[slot] = null;
+      return { ...prev, [team]: next };
+    });
+  };
+
+  const applyHint = (team: TeamId) => {
+    if (submitted[team] || hintsLeft[team] === 0) return;
+    const slot = boards[team].findIndex((id, i) => id !== events[i].id);
+    if (slot === -1) {
+      flash(team, 'Your order already looks right — submit it!');
       return;
     }
-
-    sound.playMachineStart();
-    setIsSimulating(true);
-    setErrorSlotIndex(null);
-    setErrorMessage(null);
-
-    // Animate step by step
-    let current = 0;
-    const interval = setInterval(() => {
-      if (current < 6) {
-        setFlowStep(current);
-        const expectedStepNumber = current + 1;
-        const placedCard = placedSlots[current];
-
-        if (placedCard && placedCard.stepNumber === expectedStepNumber) {
-          // Step is correct, move milk fluid forward
-          sound.playWhoosh();
-          current++;
-        } else {
-          // Flow stopped due to misplacement!
-          clearInterval(interval);
-          setIsSimulating(false);
-          setErrorSlotIndex(current);
-          sound.playBuzzer();
-
-          const wrongCard = placedSlots[current];
-          setStreaks((prev) => ({ ...prev, [activeTeamId]: 0 }));
-          setErrorMessage(
-            `⚠️ Pipeline Blocked at Step ${current + 1}! ` +
-              (wrongCard ? wrongCard.wrongOrderClue : 'Missing stage.')
-          );
-        }
-      } else {
-        // Complete Success!
-        clearInterval(interval);
-        setIsSimulating(false);
-        setIsCompleteSuccess(true);
-        triggerConfettiBurst(3500);
-        sound.playSuccessFlourish();
-
-        // Award 30 points to the active team & increment streak
-        setScores((prev) => ({
-          ...prev,
-          [activeTeamId]: prev[activeTeamId] + 30,
-        }));
-        setStreaks((prev) => ({
-          ...prev,
-          [activeTeamId]: prev[activeTeamId] + 1,
-        }));
-      }
-    }, 700);
+    sound.playConnectionMade();
+    const correct = events[slot];
+    setBoards((prev) => {
+      const next = prev[team].map((id) => (id === correct.id ? null : id));
+      next[slot] = correct.id;
+      return { ...prev, [team]: next };
+    });
+    setHintsLeft((prev) => ({ ...prev, [team]: prev[team] - 1 }));
+    flash(team, `Hint: step ${slot + 1} — ${correct.clue}`);
   };
 
-  const handleResetChallenge = () => {
+  const submit = (team: TeamId) => {
+    if (submitted[team]) return;
+    if (boards[team].some((id) => id === null)) {
+      sound.playBuzzer();
+      flash(team, 'Fill all 6 steps before submitting!');
+      return;
+    }
+    sound.playChallengeComplete();
+    setSubmitted((prev) => ({ ...prev, [team]: true }));
+    const other = team === 'teamA' ? 'teamB' : 'teamA';
+    if (!submitted[other]) flash(team, 'Locked in! Waiting for the other team…');
+  };
+
+  const clearAll = () => {
     sound.playClick();
-    setPlacedSlots([null, null, null, null, null, null]);
-    setDockCards([...AMUL_FLOWCHART_STAGES].sort(() => Math.random() - 0.5));
-    setSelectedCardId(null);
-    setIsSimulating(false);
-    setFlowStep(-1);
-    setErrorSlotIndex(null);
-    setErrorMessage(null);
-    setIsCompleteSuccess(false);
+    setBoards((prev) => ({
+      teamA: submitted.teamA ? prev.teamA : emptyBoard(),
+      teamB: submitted.teamB ? prev.teamB : emptyBoard(),
+    }));
+    setSelectedId(null);
   };
 
-  const handleSwitchTeamRound = () => {
-    sound.playTurnSwitch();
-    handleResetChallenge();
-    setActiveTeamId((prev) => (prev === 'teamA' ? 'teamB' : 'teamA'));
+  const startRound = (idx: number) => {
+    setRoundIdx(idx);
+    setTray(shuffle(STORY_ROUNDS[idx].events));
+    setBoards(emptyBoards());
+    setSubmitted({ teamA: false, teamB: false });
+    setSelectedId(null);
+    setNotice({});
+    resetTimer();
+  };
+
+  const nextRound = () => {
+    sound.playMachineStart();
+    if (isLastRound) {
+      setShowFinal(true);
+      triggerConfettiBurst(3500);
+    } else {
+      startRound(roundIdx + 1);
+    }
+  };
+
+  const playAgain = () => {
+    sound.playClick();
+    setRoundScores([]);
+    setHintsLeft({ teamA: HINTS_PER_GAME, teamB: HINTS_PER_GAME });
+    setShowFinal(false);
+    startRound(0);
+  };
+
+  const totals = roundScores.reduce(
+    (acc, r) => ({ teamA: acc.teamA + r.teamA, teamB: acc.teamB + r.teamB }),
+    { teamA: 0, teamB: 0 }
+  );
+  const roundDots = STORY_ROUNDS.map((_, i) => {
+    const r = roundScores[i];
+    if (r) return r.teamA === r.teamB ? ('tie' as const) : r.teamA > r.teamB ? ('teamA' as const) : ('teamB' as const);
+    return i === roundIdx ? ('current' as const) : ('todo' as const);
+  });
+  const winner = totals.teamA === totals.teamB ? null : totals.teamA > totals.teamB ? TEAMS[0] : TEAMS[1];
+
+  const renderTeamColumn = (teamIdx: 0 | 1) => {
+    const team = TEAMS[teamIdx];
+    const styles = TEAM_STYLES[team.id];
+    const board = boards[team.id];
+    const locked = submitted[team.id];
+
+    return (
+      <section className={`flex flex-col gap-3 min-h-0 ${teamIdx === 0 ? 'order-1' : 'order-2 lg:order-3'}`}>
+        <TeamPanelHeader
+          team={team}
+          tagline={team.storyTagline}
+          correct={liveScore(team.id)}
+          total={STEPS}
+          scoreLabel="Correct Order"
+          isActive={locked && !revealed}
+          activeLabel="Locked In!"
+        />
+        <ArenaCard className="p-3 flex-1 flex flex-col min-h-0">
+          <h3 className={`text-center text-lg font-extrabold uppercase mb-2 ${teamIdx === 0 ? 'text-arenaBlue' : 'text-arenaRed'}`}>
+            Your Flowchart
+          </h3>
+          <ol className="flex flex-col flex-1 min-h-0">
+            {board.map((eventId, slot) => {
+              const event = eventId ? eventById[eventId] : null;
+              const key = `${team.id}-${slot}`;
+              const isRight = revealed && eventId === events[slot].id;
+              const isWrong = revealed && !isRight;
+              return (
+                <li key={key} className="flex flex-col items-center">
+                  <div
+                    onDragOver={(e) => {
+                      if (locked) return;
+                      e.preventDefault();
+                      setDragTarget(key);
+                    }}
+                    onDragLeave={() => setDragTarget(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragTarget(null);
+                      place(team.id, slot, e.dataTransfer.getData('text/plain'));
+                    }}
+                    onClick={() => selectedId && place(team.id, slot, selectedId)}
+                    className={`w-full min-h-[48px] rounded-xl border-2 flex items-center gap-2 px-2 py-1 transition-all ${
+                      isRight
+                        ? 'border-[#2BA24C] bg-[#E9F8EC]'
+                        : isWrong
+                        ? 'border-arenaRed bg-[#FFF0EE]'
+                        : dragTarget === key
+                        ? `border-solid ${styles.border} ${styles.soft} ring-4 ${styles.ring}`
+                        : event
+                        ? `border-solid ${styles.border} bg-white`
+                        : `border-dashed ${styles.border} ${styles.soft} ${selectedId && !locked ? `cursor-pointer ring-2 ${styles.ring} animate-pulse` : ''}`
+                    }`}
+                  >
+                    <span
+                      className={`w-8 h-8 shrink-0 rounded-full ${styles.solid} text-white font-extrabold flex items-center justify-center shadow`}
+                    >
+                      {slot + 1}
+                    </span>
+                    {event ? (
+                      <div
+                        draggable={!locked}
+                        onDragStart={(e) => e.dataTransfer.setData('text/plain', event.id)}
+                        className={`flex-1 min-w-0 flex items-center gap-2 ${locked ? '' : 'cursor-grab'}`}
+                      >
+                        <EventArt event={event} className="w-12 h-9 rounded-md shrink-0" />
+                        <span className="flex-1 text-xs sm:text-[13px] font-bold leading-tight line-clamp-2">{event.text}</span>
+                        {revealed ? (
+                          <span
+                            className={`w-6 h-6 shrink-0 rounded-full text-white flex items-center justify-center ${isRight ? 'bg-[#2BA24C]' : 'bg-arenaRed'}`}
+                          >
+                            {isRight ? <Check className="w-4 h-4" strokeWidth={3} /> : <X className="w-4 h-4" strokeWidth={3} />}
+                          </span>
+                        ) : (
+                          !locked && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFromSlot(team.id, slot);
+                              }}
+                              className="w-6 h-6 shrink-0 rounded-full bg-arenaNavy/10 hover:bg-arenaRed hover:text-white text-arenaNavy/60 flex items-center justify-center"
+                              aria-label={`Remove event from step ${slot + 1}`}
+                            >
+                              <X className="w-3.5 h-3.5" strokeWidth={3} />
+                            </button>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <span className={`flex-1 text-center text-sm font-semibold ${teamIdx === 0 ? 'text-arenaNavy/60' : 'text-[#B4471A]/80'}`}>
+                        {isWrong ? 'Missing step' : `Drop the ${ORDINALS[slot]} event here`}
+                      </span>
+                    )}
+                  </div>
+                  {slot < STEPS - 1 && (
+                    <ArrowDown className={`w-5 h-5 my-0.5 ${teamIdx === 0 ? 'text-arenaBlue' : 'text-arenaRed'}`} strokeWidth={3} />
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+
+          {notice[team.id] && (
+            <p role="status" className="mt-2 text-xs sm:text-sm font-bold rounded-lg bg-[#FFF8E1] border border-accentYellow px-2.5 py-1.5">
+              {notice[team.id]}
+            </p>
+          )}
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => applyHint(team.id)}
+              disabled={locked || hintsLeft[team.id] === 0}
+              className="flex items-center gap-2 rounded-xl bg-[#FFF8E1] border-2 border-[#FBE3A0] px-3 py-2 font-extrabold uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#FFF1C4]"
+            >
+              <Lightbulb className="w-5 h-5 text-accentYellow fill-accentYellow/40" />
+              Hint
+              <span className="ml-1 rounded-md bg-accentYellow/80 px-1.5 py-0.5 text-[11px]">{hintsLeft[team.id]} Left</span>
+            </button>
+          </div>
+          <PrimaryButton tone={team.id} className="mt-2 w-full" onClick={() => submit(team.id)} disabled={locked}>
+            {locked ? (revealed ? `${liveScore(team.id)} / 6 Correct` : 'Order Locked') : 'Submit Order'}
+          </PrimaryButton>
+        </ArenaCard>
+      </section>
+    );
   };
 
   return (
-    <div className="w-full h-full flex flex-col justify-between bg-background overflow-hidden select-none">
-      {/* 2-Team Score Header */}
-      <TeamScoreHeader
-        teams={teams}
-        scores={scores}
-        streaks={streaks}
-        activeTeamId={activeTeamId}
-        title="The Amul Case Study: Cooperative Flowchart Race"
-        subtitle="Arrange the 6 stages of the Amul White Revolution milk journey in logical sequence!"
-        roundInfo={`${activeTeam.name}'s Round`}
-        onResetGame={handleResetChallenge}
-        onExit={onExit}
-      />
+    <ArenaShell
+      activityNumber={2}
+      title={[
+        { text: 'AMUL', className: 'text-arenaRed' },
+        { text: 'STORY', className: 'text-arenaNavy' },
+        { text: 'SEQUENCE', className: 'text-arenaOrange' },
+      ]}
+      subtitle="Arrange the events in the correct order to show how Amul became a success."
+      secondsLeft={secondsLeft}
+      roundLabel={`ROUND ${roundIdx + 1} / ${STORY_ROUNDS.length}`}
+      roundDots={roundDots}
+      tagline={['From Farmers', 'To A Strong Cooperative', 'A Successful Journey']}
+      onExit={onExit}
+    >
+      <main className="flex-1 grid gap-3 lg:grid-cols-[minmax(270px,1fr)_minmax(0,1.9fr)_minmax(270px,1fr)]">
+        {renderTeamColumn(0)}
 
-      {/* Main Play Area */}
-      <div className="flex-1 w-full p-2.5 sm:p-4 flex flex-col justify-between gap-3 overflow-y-auto scrollable-panel">
-        {/* Storyline & Diagnostic Banner */}
-        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2.5">
-          <div
-            className={`w-full sm:flex-1 px-4 py-2 rounded-btn border text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
-              errorMessage
-                ? 'bg-statusDisrupted/15 border-statusDisrupted/40 text-statusDisrupted'
-                : isCompleteSuccess
-                ? 'bg-statusSuccess/15 border-statusSuccess/40 text-statusSuccess'
-                : 'bg-surface border-border text-textMain'
-            }`}
-          >
-            <span className="text-base sm:text-lg">
-              {errorMessage ? '⚡' : isCompleteSuccess ? '🏆' : '🥛'}
-            </span>
-            <span className="flex-1">
-              {errorMessage
-                ? errorMessage
-                : isCompleteSuccess
-                ? `🎉 Perfect Sequence, ${activeTeam.name}! Milk flowed seamlessly from rural dairy cows to happy children!`
-                : `👉 ${activeTeam.name}: Drag cards into Steps 1 to 6, then test the milk flow!`}
-            </span>
-          </div>
-
-          {/* Test Milk Flow Action Button */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleRunSimulation}
-              disabled={isSimulating}
-              className={`px-5 py-2.5 rounded-btn font-black text-xs sm:text-sm transition-all shadow-lift flex items-center gap-2 ${
-                isSimulating
-                  ? 'bg-blue-400 text-white cursor-not-allowed'
-                  : 'bg-accentYellow hover:brightness-105 text-textMain active:scale-95'
-              }`}
-            >
-              <span>{isSimulating ? '⏳ Simulating Flow...' : '🚀 Test & Run Milk Flow'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 6-Step Flowchart Pipeline Board */}
-        <div className="w-full bg-surface border-2 border-border/80 rounded-card p-3 sm:p-4 shadow-soft">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-textMain uppercase tracking-wider">
-                Amul Economic Flowchart
-              </span>
-              <span className="text-xs text-textMuted hidden md:inline">
-                (Primary Production ➔ Cooperative Collection ➔ Transport ➔ Processing ➔ Retail ➔ Consumer)
-              </span>
+        {/* ---------- Centre ---------- */}
+        <section className="order-3 lg:order-2 flex flex-col gap-3 min-h-0">
+          <ArenaCard className="p-3">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl sm:text-3xl font-extrabold uppercase leading-none">
+                  <span className="text-arenaNavy">{round.title} </span>
+                  <span className="text-arenaOrange">{round.titleAccent}</span>
+                </h2>
+                <p className="text-sm font-semibold text-arenaNavy/75 mt-1">{round.subtitle}</p>
+              </div>
+              <div className="md:max-w-[46%] flex items-center gap-2 rounded-xl bg-[#FFF8E1] border border-[#FBE3A0] px-3 py-2">
+                <BookOpen className="w-7 h-7 text-arenaBlue shrink-0" />
+                <p className="text-xs font-semibold leading-snug">
+                  Drag the cards below (or tap a card, then a step) to complete your team's flowchart of the story.
+                </p>
+              </div>
             </div>
-            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-              {placedSlots.filter(Boolean).length} / 6 Placed
-            </span>
-          </div>
+            <img
+              src={round.heroImage}
+              alt="Amul truck, cows and dairy plant in a village"
+              className="mt-3 w-full h-24 sm:h-32 object-cover rounded-xl"
+              draggable={false}
+            />
+          </ArenaCard>
 
-          {/* Horizontal Flowchart Grid with connecting pipes */}
-          <div className="w-full overflow-x-auto pb-2 scrollable-panel">
-            <div className="flex items-center gap-1 sm:gap-2 min-w-[1240px] py-1">
-              {/* Step 1 */}
-              <FlowchartStepSlot
-                stepNumber={1}
-                expectedTitle="Cow Care & Milking"
-                expectedSector="Primary"
-                placedCard={placedSlots[0]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 0}
-                hasError={errorSlotIndex === 0}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-
-              <MilkPipelineConnector isFlowing={flowStep >= 1} hasError={errorSlotIndex === 0} />
-
-              {/* Step 2 */}
-              <FlowchartStepSlot
-                stepNumber={2}
-                expectedTitle="Village Collection & Fat Testing"
-                expectedSector="Collection"
-                placedCard={placedSlots[1]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 1}
-                hasError={errorSlotIndex === 1}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-
-              <MilkPipelineConnector isFlowing={flowStep >= 2} hasError={errorSlotIndex === 1} />
-
-              {/* Step 3 */}
-              <FlowchartStepSlot
-                stepNumber={3}
-                expectedTitle="Cold Chain Tanker Transport"
-                expectedSector="Tertiary"
-                placedCard={placedSlots[2]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 2}
-                hasError={errorSlotIndex === 2}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-
-              <MilkPipelineConnector isFlowing={flowStep >= 3} hasError={errorSlotIndex === 2} />
-
-              {/* Step 4 */}
-              <FlowchartStepSlot
-                stepNumber={4}
-                expectedTitle="Central Plant Pasteurization"
-                expectedSector="Secondary"
-                placedCard={placedSlots[3]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 3}
-                hasError={errorSlotIndex === 3}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-
-              <MilkPipelineConnector isFlowing={flowStep >= 4} hasError={errorSlotIndex === 3} />
-
-              {/* Step 5 */}
-              <FlowchartStepSlot
-                stepNumber={5}
-                expectedTitle="Amul Parlours & Retail Booths"
-                expectedSector="Tertiary"
-                placedCard={placedSlots[4]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 4}
-                hasError={errorSlotIndex === 4}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-
-              <MilkPipelineConnector isFlowing={flowStep >= 5} hasError={errorSlotIndex === 4} />
-
-              {/* Step 6 */}
-              <FlowchartStepSlot
-                stepNumber={6}
-                expectedTitle="Healthy Students & Families"
-                expectedSector="Consumer"
-                placedCard={placedSlots[5]}
-                isSelectedForDrop={selectedCardId !== null}
-                isSimulating={isSimulating}
-                isFlowingPast={flowStep >= 5}
-                hasError={errorSlotIndex === 5}
-                onDropCard={handleDropIntoSlot}
-                onRemoveCard={handleRemoveFromSlot}
-                onTapSlot={handleDropIntoSlot}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Dock Cards Area (Unplaced Scenario Cards) */}
-        <div className="w-full bg-surface border border-border rounded-card p-3 shadow-soft shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-black text-textMain uppercase tracking-wider">
-              📦 Available Stage Cards (Drag or Tap to Place)
-            </span>
-            <span className="text-[11px] text-textMuted font-bold">
-              {dockCards.length === 0 ? 'All stages placed on flowchart!' : `${dockCards.length} stages left to sequence`}
-            </span>
-          </div>
-
-          {dockCards.length === 0 ? (
-            <div className="p-4 text-center text-xs font-bold text-statusSuccess bg-statusSuccess/10 rounded-btn border border-statusSuccess/30">
-              ✓ All 6 stages have been positioned on the flowchart! Click &ldquo;🚀 Test & Run Milk Flow&rdquo; above to verify your sequence!
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-              {dockCards.map((card) => {
-                const isSelected = selectedCardId === card.id;
+          <ArenaCard className="p-3 flex-1 min-h-0 flex flex-col">
+            <h3 className="flex items-center gap-2 text-base sm:text-lg font-extrabold uppercase mb-2">
+              <Workflow className="w-6 h-6 text-arenaBlue" /> Drag These Events
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1 min-h-0 auto-rows-fr">
+              {tray.map((event) => {
+                const isSelected = selectedId === event.id;
                 return (
-                  <div
-                    key={card.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, card)}
+                  <button
+                    key={event.id}
+                    type="button"
+                    draggable={!revealed}
+                    disabled={revealed}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', event.id);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    onDragEnd={() => setDragTarget(null)}
                     onClick={() => {
                       sound.playClick();
-                      setSelectedCardId(isSelected ? null : card.id);
+                      setSelectedId(isSelected ? null : event.id);
                     }}
-                    className={`bg-background rounded-card p-2 border-2 cursor-grab active:cursor-grabbing transition-all text-left flex flex-col justify-between ${
+                    aria-pressed={isSelected}
+                    className={`relative rounded-xl bg-white border-2 p-2 pl-6 flex flex-col text-center shadow-[0_3px_8px_rgba(22,48,107,0.12)] transition-all ${
                       isSelected
-                        ? 'border-blue-500 ring-4 ring-blue-300 scale-105 shadow-lift bg-white'
-                        : 'border-border hover:border-textMain/50 shadow-soft'
-                    }`}
+                        ? 'border-accentYellow ring-4 ring-accentYellow/50 -translate-y-1'
+                        : 'border-[#E3ECF7] hover:-translate-y-1 hover:border-[#9CCBFF] cursor-grab active:cursor-grabbing'
+                    } disabled:cursor-default disabled:hover:translate-y-0`}
                   >
-                    {/* Thumbnail Scene */}
-                    <div className="w-full h-20 rounded-lg overflow-hidden border border-border bg-surface mb-1.5 pointer-events-none">
-                      <ActivitySceneRenderer illustrationKey={card.illustrationKey} />
-                    </div>
-
-                    <div className="flex-1">
-                      <h4 className="text-[11px] font-black text-textMain leading-tight line-clamp-2 mb-1">
-                        {card.title}
-                      </h4>
-                      <p className="text-[9px] text-textMuted line-clamp-2 leading-relaxed">
-                        {card.description}
-                      </p>
-                    </div>
-
-                    <div className="mt-1.5 pt-1 border-t border-border/40 flex items-center justify-between text-[9px] font-bold text-textMuted">
-                      <span className="truncate">{card.location.split(' ')[0]}</span>
-                      <span className="text-blue-600">✋ Drag</span>
-                    </div>
-                  </div>
+                    <GripVertical className="absolute left-1 top-1/3 w-4 h-6 text-[#AFC3DD]" />
+                    <EventArt event={event} className="w-full aspect-[16/9] max-h-28 rounded-lg" />
+                    <span className="text-xs sm:text-sm font-semibold leading-tight mt-1.5 flex-1 flex items-center justify-center">
+                      {event.text}
+                    </span>
+                  </button>
                 );
               })}
             </div>
-          )}
-        </div>
-      </div>
+          </ArenaCard>
 
-      {/* Complete Success Modal */}
-      {isCompleteSuccess && (
-        <div className="fixed inset-0 bg-textMain/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="w-full max-w-lg bg-surface border-2 border-border rounded-card p-6 shadow-lift text-center relative overflow-hidden animate-scaleUp">
-            {/* White Revolution Milk Medal */}
-            <div className="w-20 h-20 rounded-full bg-blue-100 border-2 border-blue-400 mx-auto flex items-center justify-center text-4xl mb-3 shadow-md animate-bounce">
-              🥛
-            </div>
-
-            <span className="text-xs font-black uppercase tracking-wider text-blue-700">
-              NCERT Case Study Mastered!
-            </span>
-
-            <h2 className="text-2xl sm:text-3xl font-black text-textMain mt-1 mb-2">
-              🎉 Outstanding, {activeTeam.name}!
-            </h2>
-
-            <p className="text-xs sm:text-sm text-textMuted max-w-md mx-auto mb-4">
-              You have accurately constructed the complete supply chain flowchart of <strong>AMUL</strong>:
-              from village dairy farmers to refrigerated milk tankers, pasteurization plants, retail booths,
-              and nourishing morning milk for schoolchildren!
-            </p>
-
-            {/* Points Award Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-statusSuccess/15 border border-statusSuccess/40 text-statusSuccess font-black text-sm mb-5 shadow-sm">
-              <span>🌟 +30 Points Earned by {activeTeam.name}!</span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={handleSwitchTeamRound}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-btn border-2 border-border bg-surface hover:bg-background text-textMain font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5"
-              >
-                <span>🔄 Let {otherTeam.name} Play Round 2</span>
-              </button>
-
-              {onGoToSectorSorter && (
+          <ArenaCard className="p-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <h3 className="flex items-center gap-2 text-base sm:text-lg font-extrabold uppercase whitespace-nowrap shrink-0">
+                <ListChecks className="w-6 h-6 text-arenaBlue" /> Check Your Order
+              </h3>
+              <div className="flex-1 min-w-fit flex items-center justify-center gap-1">
+                {events.map((event, i) => (
+                  <React.Fragment key={event.id}>
+                    <div
+                      className={`w-9 h-9 2xl:w-10 2xl:h-10 shrink-0 rounded-full border-[3px] overflow-hidden flex items-center justify-center font-extrabold ${
+                        revealed ? 'border-[#2BA24C]' : 'border-[#E3ECF7] bg-[#DCE9FA] text-white'
+                      }`}
+                      title={revealed ? `${i + 1}. ${event.text}` : `Step ${i + 1}`}
+                    >
+                      {revealed ? <EventArt event={event} className="w-full h-full" /> : i + 1}
+                    </div>
+                    {i < events.length - 1 && <ArrowRight className="w-3.5 h-3.5 shrink-0 text-arenaNavy/60" strokeWidth={3} />}
+                  </React.Fragment>
+                ))}
+              </div>
+              {revealed ? (
+                <PrimaryButton tone="teamA" onClick={nextRound} className="!py-2 !text-sm">
+                  {isLastRound ? 'See Results' : 'Next Round →'}
+                </PrimaryButton>
+              ) : (
                 <button
-                  onClick={onGoToSectorSorter}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-btn bg-accentYellow hover:brightness-105 text-textMain font-black text-xs sm:text-sm shadow-lift transition-all flex items-center justify-center gap-2 group"
+                  onClick={clearAll}
+                  className="flex items-center gap-2 rounded-xl bg-[#E9EEF5] hover:bg-[#DCE3EE] px-4 py-2.5 font-extrabold uppercase text-sm"
                 >
-                  <span>🌾 Back to Sector Sorter Battle</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  <RotateCcw className="w-5 h-5" /> Clear All
                 </button>
               )}
             </div>
-          </div>
-        </div>
+          </ArenaCard>
+        </section>
+
+        {renderTeamColumn(1)}
+      </main>
+
+      {showFinal && (
+        <ResultsModal
+          heading={winner ? `${winner.name} wins!` : "It's a tie!"}
+          message="Great sequencing! From farmers joining hands to better lives — that's how a cooperative grows."
+          teams={TEAMS}
+          scores={totals}
+          total={STEPS * STORY_ROUNDS.length}
+          actions={
+            <>
+              <PrimaryButton onClick={playAgain}>Play Again</PrimaryButton>
+              {onGoToSectorSorter && (
+                <PrimaryButton tone="teamA" onClick={onGoToSectorSorter}>
+                  ← Sector Sort
+                </PrimaryButton>
+              )}
+            </>
+          }
+        />
       )}
-    </div>
+    </ArenaShell>
   );
 };

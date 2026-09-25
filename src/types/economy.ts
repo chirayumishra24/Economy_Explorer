@@ -100,40 +100,38 @@ export type CanonicalStop =
 export interface SectorCard {
   id: string;
   title: string;
-  description: string;
   sector: Sector;
-  activityKind: string;
-  actor: string;
+  image: string;
   hint: string;
-  funFact: string;
-  illustrationKey: string;
-  hindiTitle?: string;
-  hindiDescription?: string;
 }
 
-export interface AmulStageCard {
+export interface StoryEvent {
   id: string;
-  stepNumber: number;
-  title: string;
-  description: string;
-  sector: Sector | 'collection' | 'consumer';
-  location: string;
-  actor: string;
-  rationale: string;
-  wrongOrderClue: string;
-  illustrationKey: string;
-  hindiTitle?: string;
-  hindiDescription?: string;
+  /** 1-based position in the correct sequence */
+  order: number;
+  text: string;
+  clue: string;
+  image?: string;
+  illustrationKey?: string;
 }
+
+export interface StoryRound {
+  id: string;
+  title: string;
+  titleAccent: string;
+  subtitle: string;
+  heroImage: string;
+  events: StoryEvent[];
+}
+
+export type TeamId = 'teamA' | 'teamB';
 
 export interface TeamProfile {
-  id: 'teamA' | 'teamB';
+  id: TeamId;
   name: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  avatar: string;
-  mascot: string;
+  avatarImage: string;
+  sortTagline: string;
+  storyTagline: string;
 }
 
 export type Language = 'en' | 'hi';
