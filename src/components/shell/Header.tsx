@@ -36,7 +36,7 @@ export const Header: React.FC = () => {
 
   // Determine if a stop is unlocked
   const isStopUnlocked = (stopId: CanonicalStop): boolean => {
-    if (stopId === 'explore') return true;
+    if (stopId === 'explore' || stopId === 'sector-battle' || stopId === 'amul-flowchart') return true;
     if (stopId === 'follow-product') return state.completedStops.includes('explore');
     if (stopId === 'what-if') return state.completedStops.includes('follow-product');
     if (stopId === 'fix-economy') return state.completedStops.includes('what-if');
@@ -100,6 +100,19 @@ export const Header: React.FC = () => {
           </div>
         </button>
 
+        {/* 2-Team Classroom Arena Launcher */}
+        <button
+          onClick={() => {
+            sound.playMachineStart();
+            dispatch({ type: 'SET_SCREEN', screen: 'team-games' });
+          }}
+          className="text-xs px-2.5 py-1.5 rounded-btn bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 font-bold flex items-center gap-1.5 min-h-[44px] shadow-sm transition-colors"
+          title="Open 2-Team Classroom Battle Arena"
+        >
+          <span>👥</span>
+          <span className="hidden sm:inline">2-Team Arena</span>
+        </button>
+
         {/* Teacher Quick Jump */}
         <div className="relative">
           <button
@@ -115,8 +128,8 @@ export const Header: React.FC = () => {
           </button>
 
           {jumpOpen && (
-            <div className="absolute top-full left-0 mt-1.5 w-52 bg-surface border border-border rounded-card shadow-lift p-1.5 z-50">
-              <div className="px-2 py-1 text-[11px] font-semibold text-textMuted uppercase tracking-wider">Teacher Controls</div>
+            <div className="absolute top-full left-0 mt-1.5 w-60 bg-surface border border-border rounded-card shadow-lift p-1.5 z-50">
+              <div className="px-2 py-1 text-[11px] font-semibold text-textMuted uppercase tracking-wider">Canonical Stops</div>
               {CANONICAL_STOPS.map((stop) => {
                 const localizedStop = UI_TRANSLATIONS[state.language].stops[stop.id as keyof typeof UI_TRANSLATIONS['en']['stops']] || stop.label;
                 return (
@@ -135,6 +148,29 @@ export const Header: React.FC = () => {
                   </button>
                 );
               })}
+
+              <div className="border-t border-border/80 my-1"></div>
+              <div className="px-2 py-1 text-[11px] font-semibold text-textMuted uppercase tracking-wider">2-Team Classroom Activities</div>
+              <button
+                onClick={() => {
+                  handleStopClick('sector-battle');
+                  setJumpOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-btn text-sm font-medium hover:bg-background text-emerald-700 transition-colors flex items-center gap-2"
+              >
+                <span>🌾</span>
+                <span>Sector Sorter Battle</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleStopClick('amul-flowchart');
+                  setJumpOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-btn text-sm font-medium hover:bg-background text-blue-700 transition-colors flex items-center gap-2"
+              >
+                <span>🥛</span>
+                <span>Amul Flowchart Race</span>
+              </button>
             </div>
           )}
         </div>

@@ -93,7 +93,48 @@ export type CanonicalStop =
   | 'final-challenge'
   | 'assessment'
   | 'results'
-  | 'review';
+  | 'review'
+  | 'sector-battle'
+  | 'amul-flowchart';
+
+export interface SectorCard {
+  id: string;
+  title: string;
+  description: string;
+  sector: Sector;
+  activityKind: string;
+  actor: string;
+  hint: string;
+  funFact: string;
+  illustrationKey: string;
+  hindiTitle?: string;
+  hindiDescription?: string;
+}
+
+export interface AmulStageCard {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+  sector: Sector | 'collection' | 'consumer';
+  location: string;
+  actor: string;
+  rationale: string;
+  wrongOrderClue: string;
+  illustrationKey: string;
+  hindiTitle?: string;
+  hindiDescription?: string;
+}
+
+export interface TeamProfile {
+  id: 'teamA' | 'teamB';
+  name: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  avatar: string;
+  mascot: string;
+}
 
 export type Language = 'en' | 'hi';
 export type FlowMode = 'goods' | 'money';
@@ -106,7 +147,7 @@ export interface SandboxState {
 
 export interface AppState {
   currentStop: CanonicalStop;
-  screen: 'start' | 'how-to-play' | 'main' | 'teacher';
+  screen: 'start' | 'how-to-play' | 'main' | 'teacher' | 'team-games';
   completedStops: string[];
   selectedProduct: string;
   visitedNodeIds: string[];

@@ -11,11 +11,14 @@ import { ChainBuilder } from './components/stops/Stop5FinalChallenge/ChainBuilde
 import { AssessmentQuiz } from './components/stops/Stop6Assessment/AssessmentQuiz';
 import { ResultsScreen } from './components/stops/Stop6Assessment/ResultsScreen';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
+import { TeamArenaHub } from './components/team-activities/TeamArenaHub';
+import { SectorSorterBattle } from './components/team-activities/SectorSorterBattle';
+import { AmulFlowchartChallenge } from './components/team-activities/AmulFlowchartChallenge';
 
 export const App: React.FC = () => {
-  const { state } = useEconomy();
+  const { state, dispatch } = useEconomy();
 
-  // Screen level routing (Start screen vs Teacher report vs Main Hub)
+  // Screen level routing (Start screen vs Teacher report vs Team Games vs Main Hub)
   if (state.screen === 'start') {
     return (
       <main className="w-full h-full">
@@ -28,6 +31,23 @@ export const App: React.FC = () => {
     return (
       <main className="w-full h-full">
         <TeacherDashboard />
+      </main>
+    );
+  }
+
+  if (state.screen === 'team-games') {
+    return (
+      <main className="w-full h-full">
+        <TeamArenaHub
+          initialActivity={
+            state.currentStop === 'sector-battle'
+              ? 'sector-battle'
+              : state.currentStop === 'amul-flowchart'
+              ? 'amul-flowchart'
+              : 'menu'
+          }
+          onBackToMain={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'explore' })}
+        />
       </main>
     );
   }
@@ -46,6 +66,18 @@ export const App: React.FC = () => {
         {state.currentStop === 'final-challenge' && <ChainBuilder />}
         {state.currentStop === 'assessment' && <AssessmentQuiz />}
         {(state.currentStop === 'results' || state.currentStop === 'review') && <ResultsScreen />}
+        {state.currentStop === 'sector-battle' && (
+          <SectorSorterBattle
+            onGoToAmulFlowchart={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'amul-flowchart' })}
+            onExit={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'explore' })}
+          />
+        )}
+        {state.currentStop === 'amul-flowchart' && (
+          <AmulFlowchartChallenge
+            onGoToSectorSorter={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'sector-battle' })}
+            onExit={() => dispatch({ type: 'NAVIGATE_STOP', stop: 'explore' })}
+          />
+        )}
       </main>
 
       {/* Persistent Shell Footer */}
