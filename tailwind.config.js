@@ -19,6 +19,14 @@ export default {
         statusSuccess: '#3D9970',
         statusWarning: '#E0A800',
         statusDisrupted: '#C0563A',
+        arenaNavy: '#16306B',
+        arenaBlue: '#1E7BE6',
+        arenaOrange: '#F46A1F',
+        arenaRed: '#E3262B',
+        arenaWood: '#8A5A2B',
+      },
+      fontFamily: {
+        display: ['"Baloo 2"', '"Arial Rounded MT Bold"', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         'card': '16px',

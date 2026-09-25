@@ -109,17 +109,17 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
             {/* Content */}
             <div className="flex-1">
               <h3 className="text-lg sm:text-xl font-black text-textMain mb-1.5 group-hover:text-emerald-700 transition-colors">
-                Sector Showdown (3 Columns)
+                Sector Sort
               </h3>
               <p className="text-xs sm:text-sm text-textMuted leading-relaxed mb-4">
-                Both teams take turns examining illustrated cards and dragging them into Primary, Secondary,
-                or Tertiary columns. Features live scoreboards, streaks, and clues!
+                Team Knowledge and Team Heritage take turns dragging picture cards into the Primary,
+                Secondary or Tertiary sector. Each team gets 6 cards and a 45-second turn timer!
               </p>
             </div>
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-              <span className="text-xs font-bold text-textMuted">12 Scenario Cards • 2 Teams</span>
+              <span className="text-xs font-bold text-textMuted">12 Picture Cards • 2 Teams</span>
               <span className="px-4 py-2 rounded-btn bg-emerald-600 group-hover:bg-emerald-700 text-white font-black text-xs shadow-sm flex items-center gap-1 transition-colors">
                 <span>Play Battle</span>
                 <span>→</span>
@@ -135,7 +135,7 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
             {/* Top Accent Tag */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300">
-                Activity 2 • Case Study Race
+                Activity 2 • Story Sequence
               </span>
               <span className="text-xl">🥛 🚛 🏢</span>
             </div>
@@ -148,17 +148,17 @@ export const TeamArenaHub: React.FC<TeamArenaHubProps> = ({
             {/* Content */}
             <div className="flex-1">
               <h3 className="text-lg sm:text-xl font-black text-textMain mb-1.5 group-hover:text-blue-700 transition-colors">
-                The Amul Case Study Flowchart
+                Amul Story Sequence
               </h3>
               <p className="text-xs sm:text-sm text-textMuted leading-relaxed mb-4">
-                Both teams sequence the 6 stages of the Anand Milk Union Limited cooperative dairy flow.
-                Hit &ldquo;Test Milk Flow&rdquo; to simulate live milk pumping through the animated pipeline!
+                Both teams build their own 6-step flowchart of how Amul became a success, then submit to
+                reveal who got the order right. Two rounds, two hints per team!
               </p>
             </div>
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-              <span className="text-xs font-bold text-textMuted">6 Flowchart Steps • Milk Simulation</span>
+              <span className="text-xs font-bold text-textMuted">6 Events • 2 Rounds</span>
               <span className="px-4 py-2 rounded-btn bg-blue-600 group-hover:bg-blue-700 text-white font-black text-xs shadow-sm flex items-center gap-1 transition-colors">
                 <span>Start Flowchart</span>
                 <span>→</span>
